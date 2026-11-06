@@ -53,6 +53,9 @@ class SessionNotifier extends Notifier<EtatSession> {
   }
 
   final _api = Api.instance;
+  // Mot de passe gardé EN MÉMOIRE le temps de la connexion (code de sécurité compris) : il ouvre
+  // la sauvegarde chiffrée de la clé de messagerie, puis il est effacé. Jamais stocké ni envoyé ailleurs.
+  String? _motDePasse;
 
   Future<void> _restaurer() async {
     final token = await Stockage.lireSecret(Stockage.kToken);
@@ -76,20 +79,22 @@ class SessionNotifier extends Notifier<EtatSession> {
     final u = Utilisateur.fromJson(r['user']);
     await Stockage.ecrire(Stockage.kStructure, u.estPro ? u.structureId : null);
     state = EtatSession(verification: false, user: u);
-    _activerMessagerie();
+    _activerMessagerie(motDePasse: _motDePasse);
+    _motDePasse = null;
     TempsReel.instance.connecter();
   }
 
   /// Publie la clé publique de messagerie dès la connexion : les autres peuvent alors
   /// écrire à cet utilisateur même s'il n'a encore jamais ouvert la messagerie.
-  void _activerMessagerie() {
+  void _activerMessagerie({String? motDePasse}) {
     final u = state.user;
     if (u == null || u.role == 'SUPER_ADMIN') return;
-    E2ee.instance.initialiser(u.id).catchError((_) {});
+    E2ee.instance.initialiser(u.id, motDePasse: motDePasse).catchError((_) {});
   }
 
   Future<ResultatConnexion> connexion(String identifiant, String motDePasse, {String? portail}) async {
     try {
+      _motDePasse = motDePasse;
       final r = await _api.post('/auth/login', {'identifier': identifiant.trim(), 'password': motDePasse, 'portail': ?portail});
       if (r['mfa_required'] == true) {
         return MfaRequis(r['mfa_token'], r['verification']?['destination'] ?? '');
@@ -119,6 +124,7 @@ class SessionNotifier extends Notifier<EtatSession> {
 
   /// Inscription d'un parent → renvoie la destination masquée du code
   Future<String> inscription(Map<String, dynamic> donnees) async {
+    _motDePasse = donnees['password'] as String?;
     final r = await _api.post('/auth/register', donnees);
     return r['verification']?['destination'] ?? '';
   }

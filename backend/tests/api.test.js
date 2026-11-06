@@ -452,6 +452,58 @@ describe('Messagerie chiffrée de bout en bout', () => {
     const parent = await api().put(`/api/conversations/${id}/lu`).set(bearer(S.parent.token));
     assert.equal(parent.body.marques_lus, 0);
   });
+
+  test('message vocal chiffré (60 s) accepté, texte trop long refusé', async () => {
+    const convs = await api().get('/api/conversations').set(bearer(S.parent.token));
+    const id = convs.body.conversations[0].id;
+    const audio = Buffer.alloc(900000, 7).toString('base64'); // ≈ 56 s de voix à 8 kHz
+    const v = await api().post(`/api/conversations/${id}/messages`).set(bearer(S.parent.token))
+      .send({ type: 'AUDIO', duree_s: 56, ciphertext: audio, nonce: 'AAAAAAAAAAAAAAAA' });
+    assert.equal(v.status, 201, JSON.stringify(v.body).slice(0, 200));
+    assert.equal(v.body.message.type, 'AUDIO');
+    const trop = await api().post(`/api/conversations/${id}/messages`).set(bearer(S.parent.token))
+      .send({ ciphertext: Buffer.alloc(30000, 1).toString('base64'), nonce: 'AAAAAAAAAAAAAAAA' });
+    assert.equal(trop.status, 400, 'un TEXTE reste limité à 20 000 caractères');
+    const lu = await api().get(`/api/conversations/${id}/messages`).set(bearer(S.medecin.token, S.kx));
+    assert.equal(lu.body.messages.at(-1).type, 'AUDIO');
+    assert.equal(lu.body.messages.at(-1).duree_s, 56);
+  });
+
+  test('clé de messagerie sauvegardée chiffrée : le même compte la retrouve sur un autre appareil', async () => {
+    const vide = await api().get('/api/users/me/cle-messagerie').set(bearer(S.parent.token));
+    assert.equal(vide.status, 200);
+    const pk = Buffer.alloc(32, 9).toString('base64');
+    const s = { c: Buffer.alloc(48, 3).toString('base64'), sel: Buffer.alloc(16, 4).toString('base64'), nonce: Buffer.alloc(12, 5).toString('base64'), iter: 200000, pk };
+    const w = await api().put('/api/users/me/cle-messagerie').set(bearer(S.parent.token)).send(s);
+    assert.equal(w.status, 200, JSON.stringify(w.body));
+    const r = await api().get('/api/users/me/cle-messagerie').set(bearer(S.parent.token));
+    assert.equal(r.body.sauvegarde.c, s.c);
+    assert.equal(r.body.sauvegarde.pk, pk);
+    // La clé publique annoncée aux interlocuteurs est celle de la sauvegarde
+    const [m] = await requeteAdmin("SELECT id FROM users WHERE email = 'medecin@samaxhel.sn'");
+    const convs = await api().get('/api/conversations').set(bearer(S.medecin.token, S.kx));
+    assert.equal(convs.body.conversations[0].interlocuteur.public_key, pk);
+    assert.ok(m.id);
+  });
+
+  test('appels : le soignant décroche ; un autre personnel ne peut ni voir ni répondre', async () => {
+    const convs = await api().get('/api/conversations').set(bearer(S.parent.token));
+    const id = convs.body.conversations[0].id;
+    const a = await api().post(`/api/conversations/${id}/appels`).set(bearer(S.parent.token)).send({ mode: 'VIDEO' });
+    assert.equal(a.status, 201, JSON.stringify(a.body));
+    const appelId = a.body.appel.id;
+    const intrus = await api().post(`/api/appels/${appelId}/repondre`).set(bearer(S.secretaire.token, S.kx)).send({ accepte: true });
+    assert.equal(intrus.status, 404, 'la secrétaire ne voit pas l’appel du médecin');
+    const soi = await api().post(`/api/appels/${appelId}/repondre`).set(bearer(S.parent.token)).send({ accepte: true });
+    assert.equal(soi.status, 403);
+    const ok = await api().post(`/api/appels/${appelId}/repondre`).set(bearer(S.medecin.token, S.kx)).send({ accepte: true });
+    assert.equal(ok.body.statut, 'EN_COURS');
+    const fin = await api().post(`/api/appels/${appelId}/fin`).set(bearer(S.medecin.token, S.kx));
+    assert.equal(fin.body.statut, 'TERMINE');
+    const b = await api().post(`/api/conversations/${id}/appels`).set(bearer(S.medecin.token, S.kx)).send({ mode: 'AUDIO' });
+    const refus = await api().post(`/api/appels/${b.body.appel.id}/repondre`).set(bearer(S.parent.token)).send({ accepte: false });
+    assert.equal(refus.body.statut, 'REFUSE');
+  });
 });
 
 // ═══════════════════════════════════════════════════════════════════════════

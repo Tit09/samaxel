@@ -148,8 +148,25 @@ class _EnregistreurVocalState extends State<EnregistreurVocal> with SingleTicker
   }
 }
 
+/// Message vocal de la messagerie : 16 kHz → 8 kHz (qualité téléphone, deux fois plus léger
+/// à chiffrer et à envoyer sur un réseau mobile). Moyenne de deux échantillons = filtre simple.
+Uint8List wav8kDepuis16k(Uint8List wav16) {
+  final pcm = ByteData.sublistView(wav16, 44);
+  final n = pcm.lengthInBytes ~/ 4;
+  final sortie = ByteData(n * 2);
+  for (var i = 0; i < n; i++) {
+    final a = pcm.getInt16(i * 4, Endian.little);
+    final b = pcm.getInt16(i * 4 + 2, Endian.little);
+    sortie.setInt16(i * 2, (a + b) ~/ 2, Endian.little);
+  }
+  return wavMono(sortie.buffer.asUint8List(), 8000);
+}
+
 /// Ajoute l'en-tête WAV à un flux PCM 16 bits 16 kHz mono.
-Uint8List wav16kMono(Uint8List pcm) {
+Uint8List wav16kMono(Uint8List pcm) => wavMono(pcm, 16000);
+
+/// En-tête WAV pour un flux PCM 16 bits mono.
+Uint8List wavMono(Uint8List pcm, int frequence) {
   final b = ByteData(44);
   void ecrire(int pos, String s) {
     for (var i = 0; i < s.length; i++) {
@@ -163,8 +180,8 @@ Uint8List wav16kMono(Uint8List pcm) {
   b.setUint32(16, 16, Endian.little);
   b.setUint16(20, 1, Endian.little);
   b.setUint16(22, 1, Endian.little);
-  b.setUint32(24, 16000, Endian.little);
-  b.setUint32(28, 32000, Endian.little);
+  b.setUint32(24, frequence, Endian.little);
+  b.setUint32(28, frequence * 2, Endian.little);
   b.setUint16(32, 2, Endian.little);
   b.setUint16(34, 16, Endian.little);
   ecrire(36, 'data');
@@ -175,10 +192,13 @@ Uint8List wav16kMono(Uint8List pcm) {
       .takeBytes();
 }
 
-/// Lecteur d'un vocal stocké sur le serveur (téléchargé à la demande, jamais mis en cache sur le disque).
+/// Lecteur d'un vocal : stocké sur le serveur (téléchargé à la demande, jamais mis en cache sur le disque)
+/// ou déjà en mémoire (message vocal de la messagerie, déchiffré sur l'appareil).
 class LecteurVocal extends StatefulWidget {
-  const LecteurVocal({super.key, required this.vocalId, this.duree, this.clair = false});
-  final String vocalId;
+  const LecteurVocal({super.key, this.vocalId, this.octets, this.duree, this.clair = false})
+      : assert(vocalId != null || octets != null);
+  final String? vocalId;
+  final Uint8List? octets;
   final double? duree;
   final bool clair;
   @override
@@ -198,8 +218,12 @@ class _LecteurVocalState extends State<LecteurVocal> {
     if (!_charge) {
       setState(() => _chargement = true);
       try {
-        final f = await Api.instance.telecharger('/vocaux/${widget.vocalId}/audio');
-        await _player.setAudioSource(sourceOctets(f.octets, f.type));
+        if (widget.octets != null) {
+          await _player.setAudioSource(sourceOctets(widget.octets!, 'audio/wav'));
+        } else {
+          final f = await Api.instance.telecharger('/vocaux/${widget.vocalId}/audio');
+          await _player.setAudioSource(sourceOctets(f.octets, f.type));
+        }
         _charge = true;
       } catch (_) {
         if (mounted) ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Lecture impossible pour le moment')));

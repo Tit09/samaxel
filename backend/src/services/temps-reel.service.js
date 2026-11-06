@@ -9,6 +9,8 @@
  *    d'une téléconsultation. Les flux audio/vidéo vont directement d'un appareil à l'autre,
  *    chiffrés DTLS-SRTP ; s'ils ne passent pas (réseau mobile), ils transitent par NOTRE relais
  *    TURN (coturn), toujours chiffrés. Aucun service vidéo étranger.
+ *  • Appels audio/vidéo d'une conversation : invitation « appel:entrant » sur la salle de
+ *    l'utilisateur, puis salle « appel:<id> » réservée aux deux participants (contrôle RLS).
  *  • Sécurité : jeton de connexion vérifié à l'ouverture (signature, expiration, liste noire) ;
  *    une salle de visio n'est accessible qu'aux participants de la consultation (contrôle en base).
  */
@@ -71,6 +73,25 @@ function attacher(serveurHttp) {
         socket.data.salle = salle;
         socket.to(salle).emit('visio:arrivee', { de: u.id });
         ack({ ok: true, ice: serveursIce(u.id), initiateur: presents === 1 });
+      } catch (e) {
+        ack({ ok: false, erreur: e.message });
+      }
+    });
+
+    // ── Appel audio/vidéo depuis une conversation : seuls ses deux participants entrent ──
+    socket.on('appel:rejoindre', async ({ appelId } = {}, ack = () => {}) => {
+      try {
+        if (!/^[0-9a-f-]{36}$/i.test(String(appelId))) throw new Error('appel invalide');
+        const a = await withContext(u, async (db) => (await db.query('SELECT * FROM appels WHERE id = $1', [appelId])).rows[0]);
+        if (!a || !['SONNE', 'EN_COURS'].includes(a.statut)) throw new Error('appel terminé');
+        const salle = `appel:${appelId}`;
+        const presents = (await io.in(salle).fetchSockets()).length;
+        if (presents >= 2) throw new Error('l’appel a déjà deux participants');
+        socket.join(salle);
+        socket.data.salle = salle;
+        socket.to(salle).emit('visio:arrivee', { de: u.id });
+        // Celui qui arrive en second (celui qui décroche) lance la négociation WebRTC
+        ack({ ok: true, ice: serveursIce(u.id), initiateur: presents === 1, mode: a.mode });
       } catch (e) {
         ack({ ok: false, erreur: e.message });
       }

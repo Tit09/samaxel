@@ -130,6 +130,15 @@ final routeurProvider = Provider<GoRouter>((ref) {
       GoRoute(path: '/reglages/notifications', builder: (_, _) => const CanauxEcran()),
       GoRoute(path: '/chat/:id', builder: (_, e) => ChatEcran(conversation: e.extra as Conversation)),
       GoRoute(path: '/visio/:id', builder: (_, e) => VisioEcran(consultationId: e.pathParameters['id']!)),
+      GoRoute(
+        path: '/appel/:id',
+        builder: (_, e) => VisioEcran(
+          appelId: e.pathParameters['id']!,
+          mode: e.uri.queryParameters['mode'] == 'AUDIO' ? 'AUDIO' : 'VIDEO',
+          appelant: e.uri.queryParameters['appelant'] == '1',
+          nom: e.uri.queryParameters['nom'],
+        ),
+      ),
 
       // ── Espace professionnel ────────────────────────────────────────────
       StatefulShellRoute.indexedStack(

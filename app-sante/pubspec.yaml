@@ -92,6 +92,7 @@ flutter:
     - assets/voix/bm/
     - assets/voix/fr/
     - assets/voix/en/
+    - assets/sons/
 
   fonts:
     - family: Nunito

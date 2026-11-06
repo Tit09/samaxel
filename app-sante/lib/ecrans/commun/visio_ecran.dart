@@ -12,14 +12,20 @@ import '../../core/stockage.dart';
 import '../../core/theme.dart';
 import '../../widgets/communs.dart';
 
-/// Téléconsultation vidéo en WebRTC (sans LiveKit ni service étranger).
-///  1. Le serveur vérifie que l'on PARTICIPE à la consultation et donne les serveurs ICE
+/// Téléconsultation vidéo ET appels audio/vidéo de la messagerie, en WebRTC (sans service étranger).
+///  1. Le serveur vérifie que l'on PARTICIPE (consultation ou conversation) et donne les serveurs ICE
 ///     (STUN + relais TURN de SAMA XHEL, identifiants valables 1 h).
-///  2. Socket.IO relaie la signalisation (offre, réponse, candidats) entre les deux participants.
+///  2. Le WebSocket (Socket.IO) relaie la signalisation (offre, réponse, candidats) entre les deux.
 ///  3. L'image et le son vont directement d'un appareil à l'autre, chiffrés (DTLS-SRTP).
 class VisioEcran extends ConsumerStatefulWidget {
-  const VisioEcran({super.key, required this.consultationId});
-  final String consultationId;
+  const VisioEcran({super.key, this.consultationId, this.appelId, this.mode = 'VIDEO', this.appelant = false, this.nom})
+      : assert(consultationId != null || appelId != null);
+  final String? consultationId;
+  /// Appel lancé depuis une conversation (parent ↔ son soignant)
+  final String? appelId;
+  final String mode; // VIDEO ou AUDIO
+  final bool appelant; // c'est moi qui appelle : on attend que l'autre décroche
+  final String? nom;
   @override
   ConsumerState<VisioEcran> createState() => _VisioEcranState();
 }
@@ -36,6 +42,10 @@ class _VisioEcranState extends ConsumerState<VisioEcran> {
   bool _micro = true;
   bool _camera = true;
   bool _connecte = false;
+  bool get _audio => widget.mode == 'AUDIO';
+  Timer? _chrono;
+  Duration _duree = Duration.zero;
+  bool _fini = false;
   final List<RTCIceCandidate> _enAttente = [];
   bool _descriptionDistante = false;
 
@@ -49,14 +59,16 @@ class _VisioEcranState extends ConsumerState<VisioEcran> {
     try {
       await _local.initialize();
       await _distant.initialize();
-      final r = await Api.instance.get('/teleconsultation/${widget.consultationId}/join');
-      _ice = ((r['ice'] as List?) ?? []).map((e) => Map<String, dynamic>.from(e)).toList();
+      if (widget.consultationId != null) {
+        final r = await Api.instance.get('/teleconsultation/${widget.consultationId}/join');
+        _ice = ((r['ice'] as List?) ?? []).map((e) => Map<String, dynamic>.from(e)).toList();
+      }
       _flux = await navigator.mediaDevices.getUserMedia({
         'audio': true,
-        'video': {'facingMode': 'user', 'width': {'ideal': 640}, 'height': {'ideal': 480}, 'frameRate': {'ideal': 20}},
+        'video': _audio ? false : {'facingMode': 'user', 'width': {'ideal': 640}, 'height': {'ideal': 480}, 'frameRate': {'ideal': 20}},
       });
       _local.srcObject = _flux;
-      setState(() => _etat = 'En attente de l’autre participant…');
+      setState(() => _etat = widget.appelant ? 'Ça sonne chez ${widget.nom ?? 'votre interlocuteur'}…' : 'En attente de l’autre participant…');
 
       final jeton = await Stockage.lireSecret(Stockage.kToken);
       final s = io.io(AppConfig.apiUrl, io.OptionBuilder()
@@ -71,10 +83,13 @@ class _VisioEcranState extends ConsumerState<VisioEcran> {
       _socket = s;
       s.onConnect((_) {
         final structure = ref.read(utilisateurProvider)?.structureId;
-        s.emitWithAck('visio:rejoindre', {'consultationId': widget.consultationId, 'structureId': ?structure}, ack: (rep) async {
+        final (evenement, donnees) = widget.appelId != null
+            ? ('appel:rejoindre', <String, dynamic>{'appelId': widget.appelId})
+            : ('visio:rejoindre', <String, dynamic>{'consultationId': widget.consultationId, 'structureId': ?structure});
+        s.emitWithAck(evenement, donnees, ack: (rep) async {
           final m = Map<String, dynamic>.from((rep is List && rep.isNotEmpty ? rep.first : rep) as Map);
           if (m['ok'] != true) {
-            if (mounted) setState(() => _erreur = 'Accès refusé à cette consultation (${m['erreur'] ?? ''}).');
+            if (mounted) setState(() => _erreur = 'Accès refusé (${m['erreur'] ?? ''}).');
             return;
           }
           _ice = ((m['ice'] as List?) ?? _ice).map((e) => Map<String, dynamic>.from(e)).toList();
@@ -82,6 +97,15 @@ class _VisioEcranState extends ConsumerState<VisioEcran> {
         });
       });
       s.on('visio:arrivee', (_) { if (mounted) setState(() => _etat = 'Connexion à l’autre participant…'); });
+      // Appel refusé, manqué ou raccroché par l'autre
+      s.on('appel:fin', (d) {
+        final m = d is Map ? d : {};
+        if (m['appel_id'] != widget.appelId || !mounted) return;
+        final statut = m['statut'];
+        _terminer(statut == 'REFUSE'
+            ? '${widget.nom ?? 'Votre interlocuteur'} ne peut pas répondre maintenant.'
+            : statut == 'MANQUE' ? 'Pas de réponse. Il verra votre appel manqué.' : 'Appel terminé.');
+      });
       s.on('visio:signal', (d) => _recevoir(Map<String, dynamic>.from(d as Map)));
       s.on('visio:depart', (_) async {
         await _pc?.close();
@@ -112,7 +136,11 @@ class _VisioEcranState extends ConsumerState<VisioEcran> {
     pc.onTrack = (ev) {
       if (ev.streams.isNotEmpty) {
         _distant.srcObject = ev.streams.first;
-        if (mounted) setState(() { _connecte = true; _etat = 'En consultation'; });
+        if (!_connecte) {
+          _chrono?.cancel();
+          _chrono = Timer.periodic(const Duration(seconds: 1), (_) { if (mounted) setState(() => _duree += const Duration(seconds: 1)); });
+        }
+        if (mounted) setState(() { _connecte = true; _etat = widget.appelId != null ? 'En communication' : 'En consultation'; });
       }
     };
     pc.onConnectionState = (etat) {
@@ -180,11 +208,30 @@ class _VisioEcranState extends ConsumerState<VisioEcran> {
 
   Future<void> _raccrocher() async {
     _socket?.emit('visio:quitter');
+    if (widget.appelId != null) {
+      try {
+        await Api.instance.post('/appels/${widget.appelId}/fin');
+      } catch (_) {}
+    }
+    _fini = true;
     if (mounted) Navigator.of(context).maybePop();
   }
 
+  /// L'autre a refusé, n'a pas répondu ou a raccroché : on l'affiche puis on ferme
+  void _terminer(String message) {
+    if (_fini) return;
+    _fini = true;
+    _chrono?.cancel();
+    setState(() { _connecte = false; _etat = message; });
+    Future<void>.delayed(const Duration(seconds: 3), () { if (mounted) Navigator.of(context).maybePop(); });
+  }
+
+  String get _dureeTexte => '${_duree.inMinutes.toString().padLeft(2, '0')}:${(_duree.inSeconds % 60).toString().padLeft(2, '0')}';
+
   @override
   void dispose() {
+    _chrono?.cancel();
+    if (widget.appelId != null && !_fini) Api.instance.post('/appels/${widget.appelId}/fin').catchError((_) => <String, dynamic>{});
     _socket?.emit('visio:quitter');
     _socket?.dispose();
     _pc?.close();
@@ -200,8 +247,9 @@ class _VisioEcranState extends ConsumerState<VisioEcran> {
   @override
   Widget build(BuildContext context) {
     if (_erreur != null) {
-      return Scaffold(appBar: AppBar(title: const Text('Consultation vidéo')), body: VueErreur(ApiException(_erreur!, code: 'VISIO')));
+      return Scaffold(appBar: AppBar(title: Text(widget.appelId != null ? 'Appel' : 'Consultation vidéo')), body: VueErreur(ApiException(_erreur!, code: 'VISIO')));
     }
+    if (_audio) return _vueAudio();
     return Scaffold(
       backgroundColor: const Color(0xFF0B1A12),
       body: SafeArea(
@@ -232,18 +280,18 @@ class _VisioEcranState extends ConsumerState<VisioEcran> {
               child: Row(children: [
                 const Icon(Icons.lock_rounded, color: Colors.white, size: 14),
                 const SizedBox(width: 6),
-                Text(_connecte ? 'Chiffré de bout en bout' : _etat, style: const TextStyle(color: Colors.white, fontSize: 12.5)),
+                Text(_connecte ? (widget.appelId != null ? 'Chiffré · $_dureeTexte' : 'Chiffré de bout en bout') : _etat, style: const TextStyle(color: Colors.white, fontSize: 12.5)),
               ]),
             ),
           ),
           Positioned(
             left: 0, right: 0, bottom: 24,
             child: Row(mainAxisAlignment: MainAxisAlignment.center, children: [
-              _Rond(icone: _micro ? Icons.mic_rounded : Icons.mic_off_rounded, onTap: _basculerMicro),
+              _Rond(icone: _micro ? Icons.mic_rounded : Icons.mic_off_rounded, onTap: _basculerMicro, libelle: _micro ? 'Couper le micro' : 'Rétablir le micro'),
               const SizedBox(width: 18),
-              _Rond(icone: Icons.call_end_rounded, couleur: C.urgent, onTap: _raccrocher, grand: true),
+              _Rond(icone: Icons.call_end_rounded, couleur: C.urgent, onTap: _raccrocher, grand: true, libelle: 'Raccrocher'),
               const SizedBox(width: 18),
-              _Rond(icone: _camera ? Icons.videocam_rounded : Icons.videocam_off_rounded, onTap: _basculerCamera),
+              _Rond(icone: _camera ? Icons.videocam_rounded : Icons.videocam_off_rounded, onTap: _basculerCamera, libelle: _camera ? 'Couper la caméra' : 'Rétablir la caméra'),
             ]),
           ),
         ]),
@@ -252,14 +300,58 @@ class _VisioEcranState extends ConsumerState<VisioEcran> {
   }
 }
 
+extension on _VisioEcranState {
+  /// Appel audio : grand visage (initiale), nom, état et durée ; boutons très gros
+  Widget _vueAudio() {
+    final nom = widget.nom ?? 'Votre interlocuteur';
+    return Scaffold(
+      backgroundColor: const Color(0xFF0B1A12),
+      body: SafeArea(
+        child: Column(children: [
+          // Le son de l'autre est joué par ce lecteur (invisible)
+          SizedBox(width: 1, height: 1, child: RTCVideoView(_distant)),
+          const Spacer(),
+          CircleAvatar(
+            radius: 64,
+            backgroundColor: C.vert,
+            child: Text(nom.isEmpty ? '?' : nom.characters.first.toUpperCase(),
+                style: const TextStyle(color: Colors.white, fontSize: 56, fontWeight: FontWeight.w800)),
+          ),
+          const SizedBox(height: 20),
+          Text(nom, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white, fontSize: 26, fontWeight: FontWeight.w800)),
+          const SizedBox(height: 8),
+          Text(_connecte ? _dureeTexte : _etat, textAlign: TextAlign.center, style: const TextStyle(color: Colors.white70, fontSize: 18)),
+          const SizedBox(height: 8),
+          const Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            Icon(Icons.lock_rounded, color: Colors.white54, size: 14),
+            SizedBox(width: 6),
+            Text('Appel privé, chiffré', style: TextStyle(color: Colors.white54, fontSize: 13)),
+          ]),
+          const Spacer(),
+          Row(mainAxisAlignment: MainAxisAlignment.center, children: [
+            _Rond(icone: _micro ? Icons.mic_rounded : Icons.mic_off_rounded, onTap: _basculerMicro, libelle: _micro ? 'Couper le micro' : 'Rétablir le micro'),
+            const SizedBox(width: 28),
+            _Rond(icone: Icons.call_end_rounded, couleur: C.urgent, onTap: _raccrocher, grand: true, libelle: 'Raccrocher'),
+          ]),
+          const SizedBox(height: 40),
+        ]),
+      ),
+    );
+  }
+}
+
 class _Rond extends StatelessWidget {
-  const _Rond({required this.icone, required this.onTap, this.couleur = Colors.white24, this.grand = false});
+  const _Rond({required this.icone, required this.onTap, required this.libelle, this.couleur = Colors.white24, this.grand = false});
   final IconData icone;
+  final String libelle;
   final VoidCallback onTap;
   final Color couleur;
   final bool grand;
   @override
-  Widget build(BuildContext context) => Material(
+  Widget build(BuildContext context) => Semantics(
+      button: true,
+      label: libelle,
+      child: Material(
         color: couleur,
         shape: const CircleBorder(),
         child: InkWell(
@@ -267,5 +359,5 @@ class _Rond extends StatelessWidget {
           onTap: onTap,
           child: Padding(padding: EdgeInsets.all(grand ? 20 : 15), child: Icon(icone, color: Colors.white, size: grand ? 32 : 26)),
         ),
-      );
+      ));
 }

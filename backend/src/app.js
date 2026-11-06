@@ -26,10 +26,14 @@ app.use(cors({
   allowedHeaders: ['Content-Type', 'Authorization', 'X-Structure-Id', 'X-Jeton-Depot'],
   maxAge: 600,
 }));
-app.use(express.json({
+const jsonNormal = express.json({
   limit: '100kb',
   verify: (req, _res, buf) => { if (req.originalUrl.startsWith('/api/dons/webhook')) req.rawBody = buf.toString(); },
-}));
+});
+// Seul l'envoi d'un message (vocal chiffré, 60 s max) a droit à un corps plus gros
+const jsonMessage = express.json({ limit: '1600kb' });
+const ROUTE_MESSAGE = /^\/api\/conversations\/[0-9a-f-]{36}\/messages$/i;
+app.use((req, res, next) => (req.method === 'POST' && ROUTE_MESSAGE.test(req.path) ? jsonMessage : jsonNormal)(req, res, next));
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'sama-xhel-sante', version: '1.0.0' }));
 // Logos et photos des établissements partenaires (fichiers publics, mis en cache 7 jours)
@@ -66,7 +70,7 @@ if (fs.existsSync(path.join(APP_WEB, 'index.html'))) {
       imgSrc: ["'self'", 'data:', 'blob:', 'https:'],
       connectSrc: ["'self'", 'https://fonts.gstatic.com', 'https://tiles.openfreemap.org', 'https://tile.openstreetmap.org'],
       workerSrc: ["'self'", 'blob:'],
-      mediaSrc: ["'self'", 'blob:'],
+      mediaSrc: ["'self'", 'blob:', 'data:'], // voix du guide et messages vocaux lus depuis la mémoire
       frameAncestors: ["'none'"],
       upgradeInsecureRequests: null,
     },

@@ -72,6 +72,7 @@ async function main() {
     REVOKE UPDATE, DELETE ON vocaux FROM ${appUser};
     REVOKE UPDATE, DELETE ON envois FROM ${appUser};
     GRANT UPDATE (lu_at) ON vocaux TO ${appUser};
+    REVOKE DELETE ON appels FROM ${appUser};
     REVOKE ALL ON schema_migrations FROM ${appUser};
     GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO ${appUser};
     GRANT EXECUTE ON ALL FUNCTIONS IN SCHEMA public TO ${appUser};
