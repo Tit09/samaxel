@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Salle d’attente — SAMA XHEL</title>
+  <meta name="robots" content="noindex" />
+  <link rel="icon" href="/images/embleme.png" />
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/etablissement.css" />
+</head>
+<body class="ecran">
+  <header class="ecran__tete"><span class="ecran__logo" id="logo"></span><h1 id="nom">Salle d’attente</h1></header>
+  <main class="ecran__corps">
+    <section aria-live="assertive" id="appeles"><p>Chargement…</p></section>
+    <section class="ecran__attente"><h2>En attente</h2><ul id="attente"></ul></section>
+  </main>
+  <footer class="ecran__pied"><span>Écoutez l’appel de votre numéro · Seuls les numéros s’affichent</span><span id="heure"></span></footer>
+  <script src="/js/config.js"></script>
+  <script src="/js/file.js"></script>
+</body>
+</html>

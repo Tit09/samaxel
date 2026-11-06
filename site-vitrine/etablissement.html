@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Établissement — SAMA XHEL</title>
+  <meta name="description" content="Portail de l’établissement sur SAMA XHEL : prise en charge, connexion des patients et du personnel, tickets et file d’attente." />
+  <meta name="theme-color" content="#1F7A3E" />
+  <link rel="icon" href="/images/embleme.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+  <link rel="stylesheet" href="/css/etablissement.css" />
+</head>
+<body class="maison">
+  <a class="sauter" href="#contenu">Aller au contenu</a>
+  <header class="maison__entete">
+    <div class="conteneur maison__barre">
+      <a class="maison__marque" href="#" id="lien-haut"><span class="maison__logo-petit" id="logo-petit"></span><span id="nom-court">Établissement</span></a>
+      <a class="maison__sx" href="/">sur <img src="/images/embleme.png" alt="" width="22" height="22" /> SAMA XHEL</a>
+    </div>
+  </header>
+
+  <main id="contenu">
+    <section class="maison__hero">
+      <div class="conteneur maison__hero-grille">
+        <div>
+          <span class="maison__logo" id="logo"></span>
+          <p class="maison__rattache" id="rattache"></p>
+          <h1 id="nom">Chargement…</h1>
+          <ul class="maison__infos" id="infos"></ul>
+          <button class="bouton bouton--voix maison__ecouter" type="button" id="ecouter">🔊 Écouter cette page</button>
+        </div>
+        <div class="portes" id="portes" hidden>
+          <article class="porte">
+            <h2>Être suivi ici</h2>
+            <p>Le suivi se fait dans l’application SAMA XHEL : installez-la, ouvrez « Hôpitaux », choisissez <strong id="nom-porte">cet établissement</strong> puis « Rejoindre ». Votre dossier, votre soignant et vos tickets y seront.</p>
+            <a class="bouton porte__principal" id="p-apk" href="/telechargements/SAMA-XHEL-Sante.apk">Télécharger l’application Android</a>
+            <a class="bouton bouton--clair" id="p-web" href="#">Utiliser sur ordinateur ou tablette</a>
+          </article>
+          <article class="porte porte--personnel">
+            <h2>Vous travaillez ici ?</h2>
+            <p>Le personnel se connecte dans l’application, depuis le portail de son établissement, avec un code de sécurité. Les comptes sont créés par la direction.</p>
+          </article>
+        </div>
+        <div class="porte porte--annuaire" id="hors-ligne" hidden>
+          <h2>Pas encore sur SAMA XHEL</h2>
+          <p>Cet établissement figure dans l’annuaire. Appelez-le directement ; s’il souhaite ouvrir son portail, il peut nous contacter.</p>
+          <a class="bouton" id="appeler" href="#">Appeler</a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--serre" id="parcours" hidden>
+      <div class="conteneur">
+        <h2>Comment se passe votre venue</h2>
+        <ol class="parcours">
+          <li><strong>À l’entrée, la caisse</strong> Payez votre ticket en espèces, Wave ou Orange Money. Vous pouvez aussi le payer d’avance dans l’application.</li>
+          <li><strong>Votre ticket vous oriente</strong> Il porte votre numéro et le bureau où aller.</li>
+          <li><strong>On appelle votre numéro</strong> Suivez l’écran de la salle d’attente, ou votre téléphone qui vous prévient.</li>
+          <li><strong>Votre soignant vous suit</strong> Une fois votre dossier accepté, vous voyez votre soignant : rendez-vous, messages privés, consultation vidéo.</li>
+        </ol>
+      </div>
+    </section>
+
+    <section class="section section--serre section--sauge" id="offre" hidden>
+      <div class="conteneur offre">
+        <div>
+          <h2>Prise en charge</h2>
+          <p id="description" class="chapeau"></p>
+          <ul class="services" id="services"></ul>
+        </div>
+        <div>
+          <h2>Tarifs de la caisse</h2>
+          <table class="tarifs"><tbody id="tarifs"></tbody></table>
+          <p class="note">Tarifs de démonstration (données fictives) : la grille officielle est saisie par l’établissement.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section section--serre" id="file-section" hidden>
+      <div class="conteneur file">
+        <div>
+          <h2>Salle d’attente en direct</h2>
+          <p>Seuls les numéros s’affichent, jamais les noms.</p>
+          <a class="bouton bouton--clair" id="ecran-file" href="#">Ouvrir l’écran de la salle d’attente</a>
+        </div>
+        <div class="file__appeles" id="file-appeles" aria-live="polite"></div>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pied">
+    <div class="conteneur pied__ligne">
+      <span class="pied__logo"><img src="/images/logo_complet.png" alt="SAMA XHEL — Santé mentale du Sénégal" width="96" /></span>
+      <div class="pied__texte">
+        <p><strong>SAMA XHEL</strong> — L’hôpital numérique de la santé mentale au Sénégal</p>
+        <p>Développé par <strong>Adja Fatoumata Barry</strong> · Contact : <a href="tel:+221774702157">+221 77 470 21 57</a> · Urgence : <a href="tel:1515">SAMU 1515</a></p>
+        <p class="note">© 2026 SAMA XHEL — Tous droits réservés. Prototype : données fictives uniquement.</p>
+      </div>
+      <svg class="drapeau" viewBox="0 0 30 20" width="54" height="36" role="img" aria-label="Drapeau du Sénégal">
+        <rect width="10" height="20" fill="#00853F"/><rect x="10" width="10" height="20" fill="#FDEF42"/><rect x="20" width="10" height="20" fill="#E31B23"/>
+        <polygon fill="#00853F" points="15,6.2 15.95,8.9 18.8,8.9 16.5,10.6 17.35,13.3 15,11.65 12.65,13.3 13.5,10.6 11.2,8.9 14.05,8.9"/>
+      </svg>
+    </div>
+  </footer>
+  <script src="/js/config.js"></script>
+  <script src="/js/etablissement.js"></script>
+</body>
+</html>

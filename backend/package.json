@@ -1,0 +1,45 @@
+{
+  "name": "sama-xhel-sante-backend",
+  "version": "1.0.0",
+  "description": "SAMA XHEL Santé — API multi-tenant (Node.js, PostgreSQL RLS, Redis)",
+  "main": "src/server.js",
+  "scripts": {
+    "start": "node src/server.js",
+    "dev": "nodemon src/server.js",
+    "migrate": "node scripts/migrate.js",
+    "seed": "node scripts/seed.js",
+    "import:osm": "node scripts/import-osm.js",
+    "keys": "node scripts/generate-keys.js",
+    "test": "NODE_ENV=test node --test --test-concurrency=1 --test-reporter=spec --test-force-exit tests/api.test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "argon2": "^0.45.1",
+    "cors": "^2.8.6",
+    "dotenv": "^18.0.9",
+    "exceljs": "^4.4.0",
+    "express": "^5.3.0",
+    "express-rate-limit": "^8.7.1",
+    "helmet": "^8.3.0",
+    "ioredis": "^6.0.0",
+    "jsonwebtoken": "^9.0.3",
+    "nodemailer": "^10.2.1",
+    "pg": "^8.23.1",
+    "socket.io": "^4.8.1",
+    "zod": "^4.6.7"
+  },
+  "devDependencies": {
+    "nodemon": "^3.1.14",
+    "socket.io-client": "^4.8.1",
+    "supertest": "^7.3.1"
+  },
+  "type": "commonjs",
+  "engines": {
+    "node": ">=20"
+  },
+  "optionalDependencies": {
+    "firebase-admin": "^14.5.0"
+  }
+}

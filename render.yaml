@@ -1,0 +1,70 @@
+# Plan Render (« Blueprint ») : Render → New → Blueprint → choisir ce dépôt GitHub.
+# Gratuit : 1 service web (s'endort après 15 min sans visite, réveil ~1 min) + 1 Redis (Key Value).
+# La base PostgreSQL est chez Neon (gratuite, sans date d'expiration) : ses 4 valeurs sont à coller.
+services:
+  - type: web
+    name: sama-xhel
+    runtime: docker
+    plan: free
+    region: frankfurt          # le plus proche de Dakar parmi les régions Render
+    dockerfilePath: ./Dockerfile
+    healthCheckPath: /health
+    autoDeploy: true
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: TRUST_PROXY
+        value: "true"
+      - key: REDIS_URL
+        fromService:
+          type: keyvalue
+          name: sama-xhel-redis
+          property: connectionString
+      # ── Base Neon (Dashboard Neon → Connect → « Parameters ») ──
+      - key: DB_HOST
+        sync: false
+      - key: DB_PORT
+        value: "5432"
+      - key: DB_NAME
+        value: neondb
+      - key: DB_SSL
+        value: "true"
+      - key: DB_ADMIN_USER
+        sync: false
+      - key: DB_ADMIN_PASSWORD
+        sync: false
+      - key: APP_DB_USER
+        value: samaxhel_app
+      # ── Secrets générés sur votre PC : node scripts/secrets-render.js ──
+      - key: APP_DB_PASSWORD
+        sync: false
+      - key: DATA_ENCRYPTION_KEY
+        sync: false
+      - key: DATA_INDEX_KEY
+        sync: false
+      - key: JWT_PRIVATE_KEY
+        sync: false
+      - key: JWT_PUBLIC_KEY
+        sync: false
+      - key: TELEGRAM_WEBHOOK_SECRET
+        sync: false
+      # ── Notifications (facultatif, mêmes valeurs que sur votre PC) ──
+      - key: TELEGRAM_BOT_TOKEN
+        sync: false
+      - key: TELEGRAM_BOT_USERNAME
+        sync: false
+      - key: TELEGRAM_MODE
+        value: webhook
+      - key: BREVO_API_KEY
+        sync: false
+      - key: MAIL_FROM
+        sync: false
+      - key: COMMUNAUTE_TELEGRAM_URL
+        sync: false
+      - key: COMMUNAUTE_WHATSAPP_URL
+        sync: false
+  - type: keyvalue
+    name: sama-xhel-redis
+    plan: free
+    region: frankfurt
+    ipAllowList: []            # accessible seulement depuis vos services Render

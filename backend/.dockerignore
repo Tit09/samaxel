@@ -1,0 +1,8 @@
+node_modules
+.env
+keys
+*.log
+dump.rdb
+tests
+public/telechargements/*.apk
+data/osm/*.tmp

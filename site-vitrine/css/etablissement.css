@@ -1,0 +1,75 @@
+/* Portail d'un établissement : la couleur de l'hôpital (--teinte) habille toute la page,
+   pour qu'on sente qu'on est « chez lui » et pas sur un écran générique. */
+:root { --teinte: #1F7A3E; }
+.maison__entete { position: sticky; top: 0; z-index: 40; background: #fff; border-bottom: 4px solid var(--teinte); }
+.maison__barre { display: flex; align-items: center; justify-content: space-between; min-height: 64px; gap: 12px; }
+.maison__marque { display: flex; align-items: center; gap: 10px; font: 800 1.25rem "Baloo 2", sans-serif; color: var(--teinte); text-decoration: none; }
+.maison__logo-petit { display: inline-grid; place-items: center; width: 40px; height: 40px; border-radius: 10px; overflow: hidden; color: var(--teinte); }
+.maison__logo-petit img, .maison__logo img { width: 100%; height: 100%; object-fit: contain; }
+.maison__logo-petit svg, .maison__logo svg { width: 80%; height: 80%; }
+.maison__sx { display: flex; align-items: center; gap: 6px; font-size: .9rem; color: var(--texte-doux); text-decoration: none; }
+
+.maison__hero { background: var(--teinte); color: #fff; padding: clamp(36px, 6vw, 72px) 0; }
+.maison__hero h1 { color: #fff; font-size: clamp(1.8rem, 3.6vw, 2.8rem); }
+.maison__hero-grille { display: grid; grid-template-columns: 1.1fr 1fr; gap: clamp(24px, 4vw, 56px); align-items: center; }
+.maison__logo { display: inline-grid; place-items: center; width: 96px; height: 96px; border-radius: 22px; background: #fff; padding: 10px; color: var(--teinte); margin-bottom: 14px; }
+.maison__rattache { margin: 0 0 4px; opacity: .85; font-weight: 700; }
+.maison__infos { list-style: none; padding: 0; margin: 0 0 18px; display: grid; gap: 4px; }
+.maison__infos a { color: #fff; }
+.maison__ecouter { background: rgba(255, 255, 255, .16); color: #fff; box-shadow: inset 0 0 0 2px rgba(255, 255, 255, .5); }
+
+.portes { display: grid; gap: 14px; }
+.porte { background: #fff; color: var(--texte); border-radius: var(--rayon); padding: 22px; box-shadow: var(--ombre); display: grid; gap: 10px; }
+.porte h2 { font-size: 1.45rem; margin: 0; color: var(--teinte); }
+.porte p { margin: 0; color: var(--texte-doux); }
+.porte .bouton { justify-content: center; }
+.porte__principal { background: var(--teinte); }
+.porte--personnel { background: rgba(255, 255, 255, .94); }
+.porte--annuaire h2 { color: var(--foret); }
+
+.section--serre { padding: clamp(40px, 6vw, 72px) 0; }
+.section--sauge { background: var(--sauge); }
+.parcours { counter-reset: e; list-style: none; padding: 0; margin: 18px 0 0; display: grid; grid-template-columns: repeat(4, 1fr); gap: 16px; }
+.parcours li { counter-increment: e; background: #fff; border: 1px solid var(--bord); border-top: 5px solid var(--teinte); border-radius: 14px; padding: 18px; color: var(--texte-doux); }
+.parcours li::before { content: counter(e); display: inline-grid; place-items: center; width: 32px; height: 32px; border-radius: 50%; background: var(--teinte); color: #fff; font-weight: 800; margin-bottom: 8px; }
+.parcours strong { display: block; color: var(--texte); margin-bottom: 4px; }
+
+.offre { display: grid; grid-template-columns: 1fr 1fr; gap: 40px; }
+.services { list-style: none; padding: 0; margin: 0; display: grid; gap: 8px; }
+.services li { background: #fff; border-radius: 12px; padding: 12px 14px; border-left: 4px solid var(--teinte); }
+.services span { display: block; color: var(--texte-doux); font-size: .92rem; }
+.tarifs { width: 100%; border-collapse: collapse; background: #fff; border-radius: 12px; overflow: hidden; }
+.tarifs th, .tarifs td { padding: 12px 14px; border-bottom: 1px solid var(--bord); text-align: left; }
+.tarifs td { text-align: right; font-weight: 800; white-space: nowrap; color: var(--teinte); }
+.tarifs th { font-weight: 400; }
+.tarifs small { display: block; color: var(--texte-doux); font-size: .8rem; }
+
+.file { display: grid; grid-template-columns: 1fr 1fr; gap: 32px; align-items: center; }
+.file__appeles { background: #0E1B14; color: #fff; border-radius: var(--rayon); padding: 20px; min-height: 140px; }
+.file__appeles .note { color: #A9C2AE; }
+.appel { display: flex; align-items: baseline; justify-content: space-between; margin: 0 0 8px; border-bottom: 1px solid rgba(255, 255, 255, .12); padding-bottom: 8px; }
+.appel strong { font: 800 2.2rem "Baloo 2", sans-serif; color: #FFD45C; }
+
+/* Écran de la salle d'attente (télévision) */
+.ecran { background: #0E1B14; color: #fff; min-height: 100vh; display: grid; grid-template-rows: auto 1fr auto; }
+.ecran__tete { display: flex; align-items: center; gap: 16px; padding: 18px 28px; background: var(--teinte); }
+.ecran__tete h1 { color: #fff; margin: 0; font-size: clamp(1.4rem, 3vw, 2.4rem); }
+.ecran__logo { width: 64px; height: 64px; background: #fff; border-radius: 14px; padding: 6px; display: grid; place-items: center; color: var(--teinte); }
+.ecran__logo img, .ecran__logo svg { width: 100%; height: 100%; object-fit: contain; }
+.ecran__corps { display: grid; grid-template-columns: 2fr 1fr; gap: 28px; padding: 28px; }
+.ecran__appel { display: flex; justify-content: space-between; align-items: center; padding: 18px 26px; border-radius: 18px; background: rgba(255, 255, 255, .06); margin-bottom: 14px; font-size: clamp(1.2rem, 2.4vw, 2rem); }
+.ecran__appel strong { font: 800 clamp(3rem, 7vw, 6rem) "Baloo 2", sans-serif; color: #FFD45C; line-height: 1; }
+.ecran__appel--nouveau { outline: 4px solid #FFD45C; }
+.ecran__attente h2 { color: #fff; }
+.ecran__attente ul { list-style: none; padding: 0; display: flex; flex-wrap: wrap; gap: 10px; }
+.ecran__attente li { background: rgba(255, 255, 255, .1); border-radius: 10px; padding: 8px 14px; font: 700 1.6rem "Baloo 2", sans-serif; }
+.ecran__pied { padding: 14px 28px; color: #A9C2AE; display: flex; justify-content: space-between; }
+
+@media (max-width: 860px) {
+  .maison__hero-grille, .offre, .file, .ecran__corps { grid-template-columns: 1fr; }
+  .parcours { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 520px) { .parcours { grid-template-columns: 1fr; } .maison__sx { display: none; } }
+.maison .bouton--clair { color: var(--teinte); box-shadow: inset 0 0 0 2px var(--teinte); }
+.maison main h2 { color: var(--teinte); }
+.porte p strong { display: inline; font: inherit; font-weight: 700; color: var(--teinte); }

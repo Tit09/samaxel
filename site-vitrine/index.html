@@ -1,0 +1,468 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>SAMA XHEL — L’hôpital numérique de la santé mentale au Sénégal</title>
+  <meta name="description" content="Trouver un centre, faire un test de repérage, être suivi : SAMA XHEL réunit les hôpitaux, centres et écoles de santé mentale du Sénégal, pour les enfants, les adultes et les personnes âgées, en wolof, pulaar, sérère, diola, mandinka, bambara, français et anglais." />
+  <meta name="theme-color" content="#1F7A3E" />
+  <link rel="icon" href="images/embleme.png" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:wght@400;700&family=Baloo+2:wght@600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="vendor/maplibre-gl.css" />
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+  <a class="sauter" href="#contenu">Aller au contenu</a>
+
+  <header class="entete">
+    <div class="conteneur entete__barre">
+      <a href="#" class="marque" aria-label="SAMA XHEL, accueil">
+        <img src="images/embleme.png" alt="" width="44" height="44" />
+        <span>SAMA XHEL</span>
+      </a>
+      <button class="menu-bouton" aria-expanded="false" aria-controls="menu" aria-label="Ouvrir le menu">
+        <span></span><span></span><span></span>
+      </button>
+      <nav id="menu" class="menu" aria-label="Navigation principale">
+        <a href="#trouver">Trouver un centre</a>
+        <a href="#test">Faire un test</a>
+        <a href="#etablissements">Établissements</a>
+        <a href="#professionnels">Soignants</a>
+        <a href="#soutenir">Soutenir</a>
+        <a href="#application" class="bouton bouton--petit">L’application</a>
+      </nav>
+    </div>
+  </header>
+
+  <main id="contenu">
+    <!-- ═══ Accueil : chercher de l'aide dès la première phrase ═══ -->
+    <section class="hero" aria-label="Accueil">
+      <div class="diaporama" id="diaporama" aria-roledescription="diaporama">
+        <div class="diaporama__pistes" id="diapos"></div>
+        <div class="diaporama__voile"></div>
+        <div class="conteneur diaporama__texte">
+          <p class="diaporama__sur">L’hôpital numérique de la santé mentale au Sénégal</p>
+          <h1 id="diapo-titre">Autisme</h1>
+          <p class="diaporama__phrase" id="diapo-phrase">Comprendre, accompagner, inclure. Votre enfant a sa place.</p>
+          <div class="diaporama__outils">
+            <button class="bouton bouton--voix" id="ecouter" type="button" aria-pressed="false">
+              <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M3 10v4h4l5 4V6L7 10H3zm13.5 2a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4zM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6z"/></svg>
+              <span>Écouter</span>
+            </button>
+            <label class="visuellement-cache" for="langue-voix">Langue de la voix</label>
+            <select id="langue-voix" class="select-voix">
+              <option value="fr">Français</option><option value="wo">Wolof</option><option value="ff">Pulaar</option><option value="srr">Seereer</option>
+              <option value="dyo">Joola</option><option value="mnk">Mandinka</option><option value="bm">Bamanankan</option><option value="en">English</option>
+            </select>
+          </div>
+          <div class="diaporama__points" id="diapo-points" role="tablist" aria-label="Choisir une diapositive"></div>
+        </div>
+      </div>
+
+      <div class="conteneur portes" id="pour-qui">
+        <h2 class="portes__titre">Je cherche des soins</h2>
+        <div class="portes__grille">
+          <a class="porte" href="#trouver" data-public="ADULTE" data-souci="DEPRESSION,ANXIETE">
+            <img src="images/troubles/anxiete.webp" alt="" loading="lazy" />
+            <span><strong>Pour moi</strong>Stress, dépression, addiction, sommeil…</span>
+          </a>
+          <a class="porte" href="#trouver" data-public="ENFANT" data-souci="TSA,TDAH">
+            <img src="images/troubles/autisme.webp" alt="" loading="lazy" />
+            <span><strong>Pour mon enfant</strong>Autisme, TDAH, trisomie 21, langage…</span>
+          </a>
+          <a class="porte" href="#trouver" data-public="PERSONNE_AGEE" data-souci="DEMENCE,DEPRESSION">
+            <img src="images/troubles/memoire.webp" alt="" loading="lazy" />
+            <span><strong>Pour un parent âgé</strong>Mémoire, comportement, isolement…</span>
+          </a>
+        </div>
+        <div class="portes__pro">
+          <a href="#professionnels">Je suis soignant</a>
+          <a href="#etablissements">Les établissements</a>
+          <a href="#creer-hopital">Créer mon hôpital</a>
+          <a class="portes__urgence" href="tel:1515">Danger immédiat : SAMU 1515</a>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ Le parcours, en trois étapes réelles ═══ -->
+    <section class="section" aria-labelledby="t-parcours">
+      <div class="conteneur">
+        <h2 id="t-parcours">Du premier doute au suivi régulier</h2>
+        <ol class="parcours">
+          <li>
+            <img src="images/sensibliser.webp" alt="Un éducateur parle de santé mentale à des enfants" loading="lazy" width="800" height="1200" />
+            <h3>Repérer</h3>
+            <p>Des questionnaires validés (inspirés du M-CHAT, du SNAP-IV, du PHQ-9…), lus à voix haute dans votre langue. Ce n’est pas un diagnostic&nbsp;: c’est le signal qu’il faut consulter.</p>
+          </li>
+          <li>
+            <img src="images/orienter.webp" alt="Un médecin reçoit une mère et son fils" loading="lazy" width="800" height="1200" />
+            <h3>S’orienter</h3>
+            <p>Les structures sont classées selon le trouble, l’âge, la distance, le coût et la langue parlée. Vous demandez la prise en charge en un geste.</p>
+          </li>
+          <li>
+            <img src="images/coordonner.webp" alt="Une équipe soignante et une famille autour d’une tablette" loading="lazy" width="1100" height="733" />
+            <h3>Être suivi</h3>
+            <p>Rendez-vous, consultation vidéo, messages chiffrés, ordonnances et pharmacies proches, rappels par Telegram, WhatsApp ou SMS. L’équipe soignante voit en premier les situations les plus urgentes.</p>
+          </li>
+        </ol>
+      </div>
+    </section>
+
+    <!-- ═══ Trouver : carte + liste reliées à l'API ═══ -->
+    <section class="section section--sauge" id="trouver" aria-labelledby="t-trouver">
+      <div class="conteneur">
+        <h2 id="t-trouver">Où être suivi, partout au Sénégal</h2>
+        <p class="chapeau">Services de psychiatrie et de pédopsychiatrie, centres de santé mentale, addictologie, centres et écoles pour enfants : l’annuaire national, avec ses sources officielles.</p>
+        <div class="filtres" role="search">
+          <label>Pour <select id="f-public"><option value="">Tous</option><option value="ENFANT">Un enfant</option><option value="ADULTE">Un adulte</option><option value="PERSONNE_AGEE">Une personne âgée</option></select></label>
+          <label>Région <select id="f-region"><option value="">Toutes</option></select></label>
+          <label>Trouble <select id="f-trouble"><option value="">Tous</option></select></label>
+          <label>Type <select id="f-type">
+            <option value="">Tous</option>
+            <option value="CENTRE_SPECIALISE">Centre spécialisé</option>
+            <option value="HOPITAL">Hôpital</option>
+            <option value="CENTRE_SANTE">Centre de santé</option>
+            <option value="ECOLE_INCLUSIVE">École inclusive</option>
+            <option value="ECOLE_SPECIALISEE">École spécialisée</option>
+            <option value="ASSOCIATION">Association</option>
+            <option value="CENTRE_ADDICTOLOGIE">Addictologie</option>
+          </select></label>
+          <label class="filtres__recherche">Nom ou ville <input id="f-q" type="search" placeholder="ex. Fann, Thiès…" /></label>
+          <button class="bouton bouton--clair" id="f-proche" type="button">Autour de moi</button>
+        </div>
+        <div class="trouver">
+          <div id="carte" class="carte" role="region" aria-label="Carte des structures"></div>
+          <div class="trouver__liste">
+            <p id="resultats-titre" class="resultats-titre" aria-live="polite">Chargement des structures…</p>
+            <ul id="liste-structures" class="cartes-structures"></ul>
+          </div>
+        </div>
+        <p class="note">Fiches « partenaire » : vérifiées et reliées à SAMA XHEL. Les autres établissements proviennent d’OpenStreetMap (© contributeurs OpenStreetMap, ODbL)&nbsp;: appelez avant de vous déplacer.</p>
+      </div>
+    </section>
+
+    <!-- ═══ Test de repérage (anonyme) ═══ -->
+    <section class="section" id="test" aria-labelledby="t-test">
+      <div class="conteneur conteneur--etroit">
+        <h2 id="t-test">Faire un test de repérage</h2>
+        <p class="chapeau">Anonyme, rien n’est enregistré. Pour garder les résultats et les montrer au médecin, utilisez l’application.</p>
+        <div class="test" id="test-zone">
+          <div id="test-choix">
+            <label for="test-age">Âge de la personne concernée</label>
+            <select id="test-age">
+              <option value="24">Moins de 3 ans</option>
+              <option value="48" selected>3 à 5 ans</option>
+              <option value="96">6 à 11 ans</option>
+              <option value="168">12 à 17 ans</option>
+              <option value="300">18 ans et plus</option>
+            </select>
+            <ul id="test-liste" class="tests"></ul>
+          </div>
+          <div id="test-questions" hidden></div>
+          <div id="test-resultat" hidden></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- ═══ Pour les parents qui ne lisent pas, et sans smartphone ═══ -->
+    <section class="section section--indigo" id="sans-lire" aria-labelledby="t-sans-lire">
+      <div class="conteneur sans-lire">
+        <div>
+          <h2 id="t-sans-lire">Pas besoin de savoir lire</h2>
+          <p>Beaucoup de parents, surtout dans les villages, ne lisent pas le français. SAMA XHEL leur parle et les écoute.</p>
+          <dl class="canaux">
+            <div>
+              <dt>Parler comme sur WhatsApp</dt>
+              <dd>Le parent appuie sur le micro et parle dans sa langue. L’assistant comprend, lui répond à voix haute, ouvre la carte ou le rendez-vous, et transmet le message à l’équipe qui suit l’enfant. Le médecin répond par un vocal.</dd>
+            </div>
+            <div>
+              <dt>Un guide vocal sur chaque écran</dt>
+              <dd>Wolof, pulaar, sérère, diola, mandinka, bambara, français, anglais.</dd>
+            </div>
+            <div>
+              <dt>Sur tous vos appareils</dt>
+              <dd>Téléphone et tablette Android, ordinateur (dans le navigateur). La version iPhone est en cours de publication.</dd>
+            </div>
+          </dl>
+        </div>
+        <ul class="appareils" aria-label="Appareils disponibles">
+          <li><span class="appareils__icone" aria-hidden="true">📱</span><strong>Android</strong><small>téléphone</small><em class="ok">Disponible</em></li>
+          <li><span class="appareils__icone" aria-hidden="true">📲</span><strong>Tablette</strong><small>Android</small><em class="ok">Disponible</em></li>
+          <li><span class="appareils__icone" aria-hidden="true">💻</span><strong>Ordinateur</strong><small>navigateur</small><em class="ok">Disponible</em></li>
+          <li><span class="appareils__icone" aria-hidden="true">🍏</span><strong>iPhone</strong><small>App Store</small><em class="bientot">Bientôt</em></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ═══ Professionnels : candidature vérifiée ═══ -->
+    <!-- ═══ Établissements : un portail chacun ═══ -->
+    <section class="section" id="etablissements" aria-labelledby="t-etab">
+      <div class="conteneur">
+        <h2 id="t-etab">Chaque établissement a son portail</h2>
+        <p class="chapeau">Logo, couleurs, services, personnel et dossiers&nbsp;: chaque hôpital, centre ou école garde son propre espace, séparé des autres. Les familles le rejoignent en un geste.</p>
+        <ul class="portails" id="portails" aria-live="polite"><li class="note">Chargement des établissements…</li></ul>
+
+        <div class="creer" id="creer-hopital">
+          <div>
+            <h3>Créer mon hôpital sur SAMA XHEL</h3>
+            <p>Votre établissement n’accède à aucun patient tant que son adhésion n’est pas validée.</p>
+            <ol class="etapes">
+              <li><strong>Demande</strong> nom, type, région, services, responsable</li>
+              <li><strong>Pièces</strong> agrément ou arrêté, NINEA, lettre de la direction</li>
+              <li><strong>Visite sur place</strong> rencontre avec le responsable</li>
+              <li><strong>Portail ouvert</strong> l’administrateur invite son personnel</li>
+            </ol>
+          </div>
+          <div class="creer__action">
+            <p>Pour lancer la démarche, écrivez-nous en indiquant le nom de l’établissement et le responsable à contacter.</p>
+            <a class="bouton bouton--brique" href="https://wa.me/221774702157?text=Bonjour%2C%20je%20souhaite%20inscrire%20mon%20%C3%A9tablissement%20sur%20SAMA%20XHEL." target="_blank" rel="noopener">Demander l’adhésion (WhatsApp)</a>
+            <a class="lien-discret" href="tel:+221774702157">ou appeler le +221 77 470 21 57</a>
+            <p class="note">Déjà sur SAMA XHEL ? Le personnel et les familles se connectent dans l’application, dans l’espace de leur établissement.</p>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="professionnels" aria-labelledby="t-pro">
+      <div class="conteneur pro">
+        <div class="pro__texte">
+          <h2 id="t-pro">Médecins, thérapeutes, secrétaires&nbsp;: rejoignez votre structure</h2>
+          <p>Chaque structure garde la main sur son équipe. Personne n’accède aux dossiers sans vérification&nbsp;:</p>
+          <ol class="etapes">
+            <li>Vous déposez vos pièces&nbsp;: diplôme, pièce d’identité, et pour un médecin l’attestation d’inscription à l’Ordre des médecins.</li>
+            <li>L’administration de la structure les vérifie.</li>
+            <li>Elle vous convoque à un entretien, avec les originaux.</li>
+            <li>Après l’entretien seulement, votre accès est ouvert (avec double authentification).</li>
+          </ol>
+          <img src="images/mecin.webp" alt="Un médecin examine un enfant en souriant" loading="lazy" width="900" height="1350" class="pro__photo" />
+        </div>
+        <div class="pro__actions">
+          <h3>Votre espace candidat</h3>
+          <p>Déposez votre dossier en quelques minutes, puis suivez chaque étape : vérification des pièces, convocation, décision.</p>
+          <button class="bouton" type="button" data-ouvrir="dlg-pro">Déposer ma candidature</button>
+          <button class="bouton bouton--clair" type="button" data-ouvrir="dlg-suivi">Suivre mon dossier</button>
+          <p class="note">Vous pourrez rejoindre plusieurs établissements. Aucun accès aux patients avant la validation.</p>
+        </div>
+
+      </div>
+    </section>
+
+    <!-- ═══ Applications ═══ -->
+    <section class="section section--sauge" id="application" aria-labelledby="t-app">
+      <div class="conteneur appli">
+        <div>
+          <h2 id="t-app">L’application SAMA XHEL Santé</h2>
+          <p>Pour les familles&nbsp;: tests, établissements, rendez-vous, consultation vidéo, messages chiffrés, assistant vocal, ordonnances et pharmacies, rappels par Telegram, WhatsApp ou SMS.</p>
+          <p>Pour les équipes&nbsp;: file des patients classée par urgence, dossiers, agenda, comptes rendus protégés par le secret médical.</p>
+          <div class="appli__boutons">
+            <a class="bouton bouton--android" id="lien-apk" href="#" download>
+              <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M12 3v10.6l3.3-3.3 1.4 1.4L11 17.4l-5.7-5.7 1.4-1.4L10 13.6V3h2zM4 19h16v2H4z"/></svg>
+              <span>Télécharger pour Android<small id="taille-apk">fichier APK, environ 40 Mo</small></span>
+            </a>
+            <a class="bouton bouton--clair" href="/app/">Ordinateur / tablette : version web</a>
+            <button class="bouton bouton--clair" type="button" data-ouvrir="dlg-iphone">J’ai un iPhone</button>
+          </div>
+          <p><a class="lien-discret" id="lien-apk-ancien" href="#" download>Téléphone ancien (Android 32 bits) : version légère</a></p>
+          <ol class="installer">
+            <li>Ouvrez le fichier téléchargé.</li>
+            <li>Si Android le demande, autorisez « installer des applications inconnues » pour votre navigateur.</li>
+            <li>Appuyez sur « Installer », puis ouvrez SAMA XHEL.</li>
+          </ol>
+          <p class="note">Disponible sur Android (téléphone et tablette) et sur ordinateur. La version iPhone est en cours de publication.</p>
+        </div>
+        <figure class="qr">
+          <div id="qr-apk" class="qr__code" aria-hidden="true"></div>
+          <figcaption>Scannez avec votre téléphone Android : l’application se télécharge directement.</figcaption>
+        </figure>
+      </div>
+    </section>
+
+    <!-- ═══ Soutenir ═══ -->
+    <section class="section" id="soutenir" aria-labelledby="t-don">
+      <div class="conteneur conteneur--etroit">
+        <h2 id="t-don">Aider une famille à payer les séances</h2>
+        <p class="chapeau">Les dons financent les séances d’orthophonie et de psychomotricité des familles qui ne peuvent pas payer. Les montants sont publiés, jamais les noms.</p>
+        <div id="transparence" class="transparence" aria-live="polite"></div>
+        <form id="form-don" class="formulaire formulaire--ligne">
+          <fieldset>
+            <legend>Montant</legend>
+            <div class="montants">
+              <label><input type="radio" name="montant" value="2000" /> 2 000 F</label>
+              <label><input type="radio" name="montant" value="5000" checked /> 5 000 F</label>
+              <label><input type="radio" name="montant" value="10000" /> 10 000 F</label>
+              <label><input type="radio" name="montant" value="25000" /> 25 000 F</label>
+            </div>
+          </fieldset>
+          <p class="paiement__titre">Payer avec</p>
+          <div class="paiements">
+            <button class="paiement paiement--wave" type="submit" name="moyen" value="WAVE">
+              <img src="images/paiement/wave.svg" alt="" onerror="this.remove()" /><span>Wave</span>
+            </button>
+            <button class="paiement paiement--om" type="submit" name="moyen" value="ORANGE_MONEY">
+              <img src="images/paiement/orange-money.svg" alt="" onerror="this.remove()" /><span>Orange Money</span>
+            </button>
+          </div>
+          <div id="don-message" class="message" role="status" aria-live="polite"></div>
+        </form>
+      </div>
+    </section>
+  </main>
+
+  <footer class="pied">
+    <div class="conteneur pied__ligne">
+      <span class="pied__logo"><img src="images/logo_complet.png" alt="SAMA XHEL — Santé mentale du Sénégal" width="96" /></span>
+      <div class="pied__texte">
+        <p><strong>SAMA XHEL</strong> — L’hôpital numérique de la santé mentale au Sénégal</p>
+        <p>Développé par <strong>Adja Fatoumata Barry</strong> · Contact : <a href="tel:+221774702157">+221 77 470 21 57</a> · Urgence : <a href="tel:1515">SAMU 1515</a></p>
+        <p class="note">© <span id="annee">2026</span> SAMA XHEL — Tous droits réservés. Prototype : données fictives uniquement. Carte : OpenFreeMap, © contributeurs OpenStreetMap.</p>
+      </div>
+      <svg class="drapeau" viewBox="0 0 30 20" width="54" height="36" role="img" aria-label="Drapeau du Sénégal">
+        <rect width="10" height="20" fill="#00853F"/><rect x="10" width="10" height="20" fill="#FDEF42"/><rect x="20" width="10" height="20" fill="#E31B23"/>
+        <polygon fill="#00853F" points="15,6.2 15.95,8.9 18.8,8.9 16.5,10.6 17.35,13.3 15,11.65 12.65,13.3 13.5,10.6 11.2,8.9 14.05,8.9"/>
+      </svg>
+    </div>
+  </footer>
+
+
+  <!-- ═══ Fenêtres (popups) ═══ -->
+  <dialog id="dlg-pro" class="fenetre" aria-labelledby="t-dlg-pro">
+    <button class="fenetre__fermer" type="button" data-fermer aria-label="Fermer">×</button>
+    <h2 id="t-dlg-pro">Candidature d’un professionnel</h2>
+        <form id="form-pro" class="formulaire formulaire--dialogue" novalidate>
+          <fieldset id="pro-etape-1">
+            <legend>Votre candidature</legend>
+            <div class="champs-2">
+              <label>Prénom <input name="prenom" required autocomplete="given-name" /></label>
+              <label>Nom <input name="nom" required autocomplete="family-name" /></label>
+            </div>
+            <label>Structure <select name="structure_id" id="pro-structure" required><option value="">Choisir…</option></select></label>
+            <div class="champs-2">
+              <label>Fonction
+                <select name="role" required>
+                  <option value="MEDECIN">Médecin</option>
+                  <option value="THERAPEUTE">Thérapeute</option>
+                  <option value="SECRETAIRE">Secrétariat</option>
+                </select>
+              </label>
+              <label>Spécialité <input name="specialite" required placeholder="ex. orthophoniste" /></label>
+            </div>
+            <label>N° d’inscription à l’Ordre (médecins) <input name="numero_ordre" /></label>
+            <div class="champs-2">
+              <label>E-mail professionnel <input name="email" type="email" required autocomplete="email" /></label>
+              <label>Téléphone <input name="telephone" type="tel" required placeholder="77 123 45 67" autocomplete="tel" /></label>
+            </div>
+            <label>Mot de passe <input name="password" type="password" required minlength="8" autocomplete="new-password" />
+              <small>8 caractères minimum, avec des lettres et des chiffres.</small></label>
+            <fieldset class="pieces">
+              <legend>Pièces justificatives (PDF, JPEG ou PNG, 5 Mo maximum)</legend>
+              <label>Diplôme <input type="file" name="DIPLOME" accept="application/pdf,image/jpeg,image/png" required /></label>
+              <label>Pièce d’identité <input type="file" name="IDENTITE" accept="application/pdf,image/jpeg,image/png" required /></label>
+              <label>Attestation de l’Ordre (médecins) <input type="file" name="ORDRE" accept="application/pdf,image/jpeg,image/png" /></label>
+            </fieldset>
+            <button class="bouton" type="submit">Envoyer ma candidature</button>
+          </fieldset>
+          <fieldset id="pro-etape-2" hidden>
+            <legend>Activez votre compte</legend>
+            <p>Un code à 6 chiffres vient d’être envoyé à votre adresse e-mail.</p>
+            <label>Code reçu <input name="code" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" /></label>
+            <button class="bouton" type="button" id="pro-activer">Activer mon compte</button>
+          </fieldset>
+          <div id="pro-message" class="message" role="status" aria-live="polite"></div>
+        </form>
+  </dialog>
+
+  <dialog id="dlg-suivi" class="fenetre" aria-labelledby="t-dlg-suivi">
+    <button class="fenetre__fermer" type="button" data-fermer aria-label="Fermer">×</button>
+    <h2 id="t-dlg-suivi">Suivre mon dossier</h2>
+    <form id="form-suivi" class="formulaire formulaire--dialogue">
+      <label>E-mail ou téléphone <input name="identifier" required autocomplete="username" /></label>
+      <label>Mot de passe <input name="password" type="password" required autocomplete="current-password" /></label>
+      <button class="bouton" type="submit">Voir mon dossier</button>
+      <div id="suivi-message" class="message" role="status" aria-live="polite"></div>
+    </form>
+    <div id="suivi-resultat" hidden></div>
+  </dialog>
+
+  <dialog id="dlg-invitation" class="fenetre" aria-labelledby="t-dlg-inv">
+    <button class="fenetre__fermer" type="button" data-fermer aria-label="Fermer">×</button>
+    <h2 id="t-dlg-inv">Rejoindre votre établissement</h2>
+    <p id="inv-texte"></p>
+    <form id="form-invitation" class="formulaire formulaire--dialogue">
+      <div class="champs-2">
+        <label>Prénom <input name="prenom" required autocomplete="given-name" /></label>
+        <label>Nom <input name="nom" required autocomplete="family-name" /></label>
+      </div>
+      <div class="champs-2">
+        <label>Téléphone <input name="telephone" type="tel" placeholder="77 123 45 67" autocomplete="tel" /></label>
+        <label>E-mail <input name="email" type="email" autocomplete="email" /></label>
+      </div>
+      <label>N° d’inscription à l’Ordre (médecins) <input name="numero_ordre" /></label>
+      <label>Choisissez un mot de passe <input name="password" type="password" required minlength="8" autocomplete="new-password" />
+        <small>8 caractères minimum, avec des lettres et des chiffres.</small></label>
+      <button class="bouton" type="submit">Créer mon compte</button>
+      <div id="inv-message" class="message" role="status" aria-live="polite"></div>
+    </form>
+  </dialog>
+
+  <dialog id="dlg-iphone" class="fenetre fenetre--petite" aria-labelledby="t-dlg-iphone">
+    <button class="fenetre__fermer" type="button" data-fermer aria-label="Fermer">×</button>
+    <p class="fenetre__emoji" aria-hidden="true">🍏</p>
+    <h2 id="t-dlg-iphone">La version iPhone arrive bientôt</h2>
+    <p>Elle sera publiée sur l’App Store après la validation par les établissements partenaires. En attendant, ouvrez SAMA XHEL dans Safari : elle fonctionne aussi dans le navigateur.</p>
+    <a class="bouton" href="/app/">Ouvrir dans le navigateur</a>
+  </dialog>
+
+  <dialog id="dlg-om" class="fenetre fenetre--petite" aria-labelledby="t-dlg-om">
+    <button class="fenetre__fermer" type="button" data-fermer aria-label="Fermer">×</button>
+    <h2 id="t-dlg-om">Don par Orange Money</h2>
+    <p>Envoyez <strong id="om-montant">5 000 F</strong> à l’agent SAMA XHEL :</p>
+    <p class="om-numero"><a href="tel:+221774702157">77 470 21 57</a></p>
+    <ol class="installer">
+      <li>Composez <a href="tel:%23144%23">#144#</a> (ou ouvrez l’application Orange Money).</li>
+      <li>Choisissez « Transfert d’argent », entrez le numéro <strong>77 470 21 57</strong> et le montant.</li>
+      <li>Confirmez avec votre code secret.</li>
+    </ol>
+    <button class="bouton" type="button" id="om-fait">J’ai envoyé mon don</button>
+  </dialog>
+
+  <dialog id="dlg-wave" class="fenetre fenetre--petite" aria-labelledby="t-dlg-wave">
+    <button class="fenetre__fermer" type="button" data-fermer aria-label="Fermer">×</button>
+    <h2 id="t-dlg-wave">Paiement Wave ouvert</h2>
+    <p>La page de paiement Wave s’est ouverte dans un nouvel onglet. Saisissez <strong id="wave-montant">5 000 F</strong> et validez.</p>
+    <button class="bouton" type="button" id="wave-fait">J’ai payé</button>
+  </dialog>
+
+  <dialog id="dlg-merci" class="fenetre fenetre--merci" aria-labelledby="t-dlg-merci">
+    <canvas id="confettis" aria-hidden="true"></canvas>
+    <p class="fenetre__emoji" aria-hidden="true">🎉</p>
+    <h2 id="t-dlg-merci">Merci d’avoir participé à la communauté SAMA XHEL&nbsp;!</h2>
+    <p>Votre don aide une famille à payer ses séances. Jërëjëf&nbsp;!</p>
+    <button class="bouton" type="button" data-fermer>Fermer</button>
+  </dialog>
+
+  <!-- Assistant du site (guide) -->
+  <button class="assistant-bouton" id="assistant-ouvrir" type="button" aria-expanded="false" aria-controls="assistant">
+    <span aria-hidden="true">💬</span><span class="assistant-bouton__texte">Besoin d’aide&nbsp;?</span>
+  </button>
+  <section class="assistant" id="assistant" hidden aria-label="Assistant SAMA XHEL">
+    <header class="assistant__tete">
+      <strong>Assistant SAMA XHEL</strong>
+      <button type="button" id="assistant-fermer" aria-label="Fermer l’assistant">×</button>
+    </header>
+    <div class="assistant__fil" id="assistant-fil" aria-live="polite"></div>
+    <div class="assistant__suggestions" id="assistant-suggestions"></div>
+    <form class="assistant__saisie" id="assistant-form">
+      <input id="assistant-texte" autocomplete="off" placeholder="Écrivez votre question…" aria-label="Votre question" />
+      <button type="submit" aria-label="Envoyer">➤</button>
+    </form>
+  </section>
+
+  <script src="vendor/maplibre-gl.js"></script>
+  <script src="vendor/qrcode.js"></script>
+  <script src="js/config.js"></script>
+  <script src="data/structures.js"></script>
+  <script src="js/main.js"></script>
+</body>
+</html>

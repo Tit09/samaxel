@@ -1,0 +1,145 @@
+# Intégration continue SAMA XHEL — tests, analyse de sécurité et construction de TOUTES les versions.
+# iOS et macOS ne peuvent se construire que sur un Mac : GitHub fournit des machines macOS.
+name: CI SAMA XHEL
+
+on:
+  push: { branches: [main] }
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  FLUTTER_VERSION: '3.47.8'
+  API_URL: ${{ vars.API_URL || 'https://api.samaxhel.sn' }}
+
+jobs:
+  # ── 1. Backend : tests de bout en bout sur un vrai PostgreSQL + Redis ─────────
+  backend:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: backend } }
+    services:
+      postgres:
+        image: postgres:16
+        env: { POSTGRES_PASSWORD: ci-postgres }
+        ports: ['5433:5432']
+        options: --health-cmd pg_isready --health-interval 5s --health-retries 10
+      redis:
+        image: redis:7
+        ports: ['6380:6379']
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: 22, cache: npm, cache-dependency-path: backend/package-lock.json }
+      - run: npm ci
+      - name: Configuration de test (aucun secret réel)
+        run: |
+          cat > .env <<CONF
+          NODE_ENV=test
+          DB_HOST=127.0.0.1
+          DB_PORT=5433
+          DB_NAME=samaxhel
+          DB_ADMIN_USER=postgres
+          DB_ADMIN_PASSWORD=ci-postgres
+          APP_DB_USER=samaxhel_app
+          APP_DB_PASSWORD=ci-app-$(openssl rand -hex 8)
+          REDIS_HOST=127.0.0.1
+          REDIS_PORT=6380
+          DATA_ENCRYPTION_KEY=$(openssl rand -hex 32)
+          DATA_INDEX_KEY=$(openssl rand -hex 32)
+          CONF
+          npm run keys
+      - run: npm test
+      - name: Dépendances vulnérables (bloquant si élevé)
+        run: npm audit --omit=dev --audit-level=high
+
+  # ── 2. Sécurité du code : secrets oubliés + analyse statique ─────────────────
+  securite:
+    runs-on: ubuntu-24.04
+    permissions: { contents: read, security-events: write }
+    steps:
+      - uses: actions/checkout@v4
+        with: { fetch-depth: 0 }
+      - name: Recherche de secrets (gitleaks)
+        uses: gitleaks/gitleaks-action@v2
+        env: { GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }
+      - name: Analyse statique (Semgrep, règles OWASP)
+        run: pipx run semgrep scan --config p/owasp-top-ten --config p/nodejs --error backend/src
+
+  # ── 3. Application : analyse, tests, puis une construction par plateforme ────
+  app-tests:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: app-sante } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { flutter-version: '${{ env.FLUTTER_VERSION }}', cache: true }
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+
+  build:
+    needs: app-tests
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { plateforme: android, os: ubuntu-24.04, commande: 'flutter build apk --release --split-per-abi', sortie: 'build/app/outputs/flutter-apk/*.apk' }
+          - { plateforme: web,     os: ubuntu-24.04, commande: 'flutter build web --release', sortie: 'build/web' }
+          - { plateforme: linux,   os: ubuntu-24.04, commande: 'flutter build linux --release', sortie: 'build/linux/x64/release/bundle' }
+          - { plateforme: windows, os: windows-latest, commande: 'flutter build windows --release', sortie: 'build/windows/x64/runner/Release' }
+          - { plateforme: macos,   os: macos-15, commande: 'flutter build macos --release', sortie: 'build/macos/Build/Products/Release/*.app' }
+          # iOS : sans compte Apple Developer, on produit une archive NON signée (preuve de compilation).
+          # Pour installer sur iPhone : signature + TestFlight (compte Apple Developer, 99 $/an).
+          - { plateforme: ios,     os: macos-15, commande: 'flutter build ios --release --no-codesign', sortie: 'build/ios/iphoneos/Runner.app' }
+    runs-on: ${{ matrix.os }}
+    defaults: { run: { working-directory: app-sante } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { flutter-version: '${{ env.FLUTTER_VERSION }}', cache: true }
+      - if: matrix.plateforme == 'android'
+        uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - if: matrix.plateforme == 'linux'
+        run: sudo apt-get update && sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev libsecret-1-dev libpulse-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev
+      - run: flutter pub get
+      - run: ${{ matrix.commande }} --dart-define=API_URL=${{ env.API_URL }}
+        shell: bash
+      - uses: actions/upload-artifact@v4
+        with:
+          name: sama-xhel-sante-${{ matrix.plateforme }}
+          path: app-sante/${{ matrix.sortie }}
+          retention-days: 30
+
+  # ── 4. DevSecOps : image Docker, nomenclature logicielle, test d'intrusion automatisé ──
+  image-docker:
+    runs-on: ubuntu-24.04
+    permissions: { contents: read, security-events: write }
+    steps:
+      - uses: actions/checkout@v4
+      - name: Construction de l'image de l'API
+        run: docker build -t samaxhel-api:ci backend
+      - name: Vulnérabilités de l'image et des dépendances (Trivy, bloquant si critique)
+        uses: aquasecurity/trivy-action@0.33.1
+        with: { image-ref: 'samaxhel-api:ci', severity: 'CRITICAL,HIGH', exit-code: '1', ignore-unfixed: true }
+      - name: Nomenclature logicielle SBOM (CycloneDX)
+        uses: aquasecurity/trivy-action@0.33.1
+        with: { image-ref: 'samaxhel-api:ci', format: cyclonedx, output: sbom-api.cdx.json, exit-code: '0' }
+      - uses: actions/upload-artifact@v4
+        with: { name: sbom, path: sbom-api.cdx.json }
+
+  dast:
+    needs: backend
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v4
+      - name: Démarrage de la plateforme complète (données fictives)
+        working-directory: serveur
+        run: |
+          docker compose up -d --build
+          for i in $(seq 1 60); do curl -fs http://localhost:3001/health && break; sleep 3; done
+      - name: Test d'intrusion automatisé (OWASP ZAP, analyse de base)
+        uses: zaproxy/action-baseline@v0.14.0
+        with: { target: 'http://localhost:3001', allow_issue_writing: false, fail_action: false, cmd_options: '-a' }

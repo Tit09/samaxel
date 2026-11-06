@@ -1,0 +1,91 @@
+# ═══════════════════════════════════════════════════════════════════════════
+#  SAMA XHEL — serveur complet : API + site vitrine + APK, base PostgreSQL, Redis.
+#  Le même fichier sert sur le PC (tests sur le Wi-Fi) et sur le serveur en ligne.
+#  Une seule adresse : http://<machine>:3001  (site, API sous /api, APK sous /telechargements)
+#  Données FICTIVES uniquement tant que la CDP n'a pas donné son autorisation.
+# ═══════════════════════════════════════════════════════════════════════════
+name: samaxhel
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: samaxhel
+      POSTGRES_USER: samaxhel_admin
+      POSTGRES_PASSWORD: ${DB_ADMIN_PASSWORD:-a_changer_sur_le_serveur_en_ligne}
+    volumes: [pgdata:/var/lib/postgresql/data]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U samaxhel_admin -d samaxhel"]
+      interval: 3s
+      retries: 30
+    # Aucun port publié : la base n'est joignable que par l'API (réseau interne Docker)
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes"]
+    volumes: [redisdata:/data]
+
+  api:
+    build: ../backend
+    restart: unless-stopped
+    entrypoint: ["sh", "/demarrage/demarrage.sh"]
+    env_file:
+      - path: .env          # VOS identifiants (Telegram, Orange, WhatsApp, Gmail) : jamais envoyés à personne
+        required: false
+    environment:
+      NODE_ENV: ${NODE_ENV:-development}
+      PORT: "3001"
+      DB_HOST: postgres
+      DB_PORT: "5432"
+      DB_NAME: samaxhel
+      DB_ADMIN_USER: samaxhel_admin
+      DB_ADMIN_PASSWORD: ${DB_ADMIN_PASSWORD:-a_changer_sur_le_serveur_en_ligne}
+      APP_DB_USER: samaxhel_app
+      REDIS_HOST: redis
+      REDIS_PORT: "6379"
+      SITE_DIR: /app/site
+      OTP_CONSOLE: ${OTP_CONSOLE:-false}
+      TELEGRAM_MODE: ${TELEGRAM_MODE:-polling}
+      TRUST_PROXY: ${TRUST_PROXY:-false}   # true avec le tunnel HTTPS (vraie adresse IP des visiteurs)
+    volumes:
+      - donnees:/app/donnees
+      - cles:/app/keys
+      - ./demarrage.sh:/demarrage/demarrage.sh:ro
+      - ../site-vitrine:/app/site:ro
+      - ../backend/public/telechargements:/app/public/telechargements:ro
+    ports: ["3001:3001"]
+    depends_on:
+      postgres: { condition: service_healthy }
+      redis: { condition: service_started }
+
+  # Adresse publique HTTPS GRATUITE (Cloudflare Tunnel, sans compte ni nom de domaine) :
+  #   docker compose --profile public up -d
+  #   docker compose logs tunnel | findstr trycloudflare      → https://xxxx.trycloudflare.com
+  # Le PC reste le serveur ; le jury et les téléphones (4G, n'importe où) passent par cette adresse.
+  tunnel:
+    profiles: [public]
+    image: cloudflare/cloudflared:2025.9.1
+    restart: unless-stopped
+    command: tunnel --no-autoupdate --url http://api:3001
+    depends_on: [api]
+
+  # Relais TURN pour la visio WebRTC (serveur en ligne seulement) :
+  #   docker compose --profile en-ligne up -d   (TURN_SECRET et TURN_URL dans .env)
+  coturn:
+    profiles: [en-ligne]
+    image: coturn/coturn:4.6
+    restart: unless-stopped
+    network_mode: host
+    command: >
+      -n --log-file=stdout --listening-port=3478 --fingerprint --use-auth-secret
+      --static-auth-secret=${TURN_SECRET:-a_definir} --realm=samaxhel.sn
+      --min-port=49160 --max-port=49200 --no-cli --no-multicast-peers
+      --denied-peer-ip=10.0.0.0-10.255.255.255 --denied-peer-ip=172.16.0.0-172.31.255.255 --denied-peer-ip=192.168.0.0-192.168.255.255
+
+volumes:
+  pgdata:
+  redisdata:
+  donnees:
+  cles:

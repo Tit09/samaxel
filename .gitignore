@@ -1,0 +1,14 @@
+# Secrets : JAMAIS sur GitHub
+.env
+*.env
+!.env.exemple
+!.env.example
+backend/keys/
+serveur/.env
+**/cles.env
+# Dépendances et fichiers générés
+node_modules/
+app-sante/build/
+app-sante/.dart_tool/
+livrables/
+*.log
