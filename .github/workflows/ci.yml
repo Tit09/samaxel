@@ -38,7 +38,7 @@ jobs:
         ports: ['6380:6379']
     steps:
       - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@v7
         with: { node-version: 22, cache: npm, cache-dependency-path: backend/package-lock.json }
       - run: npm ci
       - name: Configuration de test (aucun secret réel)
