@@ -4,6 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../core/api.dart';
 import '../../core/session.dart';
+import '../../core/temps_reel.dart';
 import '../../core/theme.dart';
 import '../../widgets/communs.dart';
 
@@ -11,6 +12,9 @@ final supervisionProvider = FutureProvider.autoDispose<Map<String, dynamic>>((re
 final statsNationalesProvider = FutureProvider.autoDispose<Map<String, dynamic>>((ref) => Api.instance.get('/admin/statistiques-nationales'));
 final alertesProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async =>
     (((await Api.instance.get('/admin/securite/alertes'))['alertes'] as List?) ?? []).map((e) => Map<String, dynamic>.from(e)).toList());
+/// Rafraîchit la liste des alertes dès qu'une nouvelle arrive par le WebSocket
+final _alertesDirectProvider = StreamProvider.autoDispose<void>((ref) =>
+    TempsReel.instance.filtre('alerte:nouvelle').map((_) => ref.invalidate(alertesProvider)));
 final ancragesProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async =>
     (((await Api.instance.get('/admin/ancrages'))['ancrages'] as List?) ?? []).map((e) => Map<String, dynamic>.from(e)).toList());
 final partenairesAdminProvider = FutureProvider.autoDispose<List<Map<String, dynamic>>>((ref) async =>
@@ -140,6 +144,7 @@ class SuperAdminEcran extends ConsumerWidget {
 class _SecuriteAvancee extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
+    ref.watch(_alertesDirectProvider);
     final alertes = ref.watch(alertesProvider);
     final ancrages = ref.watch(ancragesProvider);
     return Column(crossAxisAlignment: CrossAxisAlignment.stretch, children: [

@@ -8,6 +8,7 @@ import 'core/maison.dart';
 import 'core/routeur.dart';
 import 'core/stockage.dart';
 import 'core/theme.dart';
+import 'widgets/alerte_securite.dart';
 import 'widgets/appel_entrant.dart';
 
 Future<void> main() async {
@@ -41,7 +42,7 @@ class SamaXhelApp extends ConsumerWidget {
         return MediaQuery(
           data: mq.copyWith(textScaler: mq.textScaler.clamp(minScaleFactor: 1.0, maxScaleFactor: 1.4)),
           // Appels audio/vidéo entrants : la sonnerie s'affiche par-dessus n'importe quel écran
-          child: AppelsEntrants(child: child!),
+          child: AlertesSecuriteTempsReel(child: AppelsEntrants(child: child!)),
         );
       },
     );

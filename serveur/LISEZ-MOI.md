@@ -140,3 +140,32 @@ docker compose down -v
 - Le fichier `.env` contient vos identifiants : ne l'envoyez à personne, ne le mettez pas sur GitHub.
 - La base de données n'est pas exposée sur le réseau ; seul le port 3001 l'est.
 - Les clés de chiffrement sont créées au premier démarrage et restent dans le volume Docker de cette machine.
+
+## 8. Supervision en temps réel
+
+### 8.1 Alertes de sécurité dans l'application
+Dès qu'une alerte est levée (compte verrouillé après 5 mots de passe faux, accès anormaux à des
+dossiers, journal d'audit modifié), le super-administrateur et la direction de l'hôpital concerné
+voient une bannière rouge avec un signal sonore, quel que soit l'écran ouvert.
+
+Pour recevoir aussi les alertes sur Telegram (téléphone qui sonne, application fermée) :
+1. créez un groupe Telegram « SAMA XHEL — Alertes » et ajoutez-y votre bot ;
+2. écrivez un message dans le groupe, puis ouvrez dans un navigateur
+   `https://api.telegram.org/bot<VOTRE_JETON>/getUpdates` : l'identifiant du groupe est le nombre
+   négatif après `"chat":{"id":` ;
+3. ajoutez dans `serveur\.env` la ligne `TELEGRAM_ALERTES_CHAT_ID=<ce nombre>` ;
+4. relancez : `docker compose up -d`.
+
+### 8.2 Uptime Kuma (disponibilité)
+Uptime Kuma démarre avec le reste : ouvrez `http://localhost:3002`.
+1. Au premier lancement, créez le compte administrateur (nom et mot de passe à vous).
+2. « Ajouter une sonde », type **HTTP(s)**, intervalle 60 s, pour chacune de ces adresses :
+   - `http://api:3001/health/complet` — API, base de données et Redis ;
+   - `http://api:3001/` — site vitrine ;
+   - `http://api:3001/app/` — application web.
+3. Paramètres → Notifications → **Telegram** : jeton du bot et identifiant du groupe d'alertes ;
+   cochez « Activer par défaut » et appliquez à toutes les sondes.
+4. (Facultatif) « Pages de statut » : une page publique verte/rouge à afficher sur un écran.
+
+Test devant le jury : `docker compose stop postgres` → la sonde « API » passe au rouge et Telegram
+prévient ; `docker compose start postgres` → tout redevient vert.

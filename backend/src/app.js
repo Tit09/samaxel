@@ -36,6 +36,16 @@ const ROUTE_MESSAGE = /^\/api\/conversations\/[0-9a-f-]{36}\/messages$/i;
 app.use((req, res, next) => (req.method === 'POST' && ROUTE_MESSAGE.test(req.path) ? jsonMessage : jsonNormal)(req, res, next));
 
 app.get('/health', (_req, res) => res.json({ status: 'ok', service: 'sama-xhel-sante', version: '1.0.0' }));
+// Santé détaillée, pour Uptime Kuma : 200 si la base ET Redis répondent, 503 sinon (aucune donnée exposée)
+app.get('/health/complet', async (_req, res) => {
+  const { pool } = require('./config/database');
+  const redis = require('./config/redis');
+  const controle = async (f) => { const t = Date.now(); try { await Promise.race([f(), new Promise((_, ko) => setTimeout(() => ko(new Error('délai')), 3000))]); return { ok: true, ms: Date.now() - t }; } catch { return { ok: false }; } };
+  const base = await controle(() => pool.query('SELECT 1'));
+  const cache = await controle(() => redis.ping());
+  const ok = base.ok && cache.ok;
+  res.status(ok ? 200 : 503).json({ status: ok ? 'ok' : 'degrade', base_de_donnees: base, redis: cache });
+});
 // Logos et photos des établissements partenaires (fichiers publics, mis en cache 7 jours)
 app.use('/media', express.static(path.join(__dirname, '..', 'public'), {
   maxAge: '7d', index: false, dotfiles: 'ignore',

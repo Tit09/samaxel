@@ -17,6 +17,7 @@ const { informer } = require('./contact.service');
 const { evaluer: evaluerAcces } = require('../ia/anomalies');
 const { predire: predireAbsence } = require('../ia/absence');
 const { ancrer } = require('./securite/ancrage.service');
+const alertes = require('./alertes.service');
 
 const SEUIL_RISQUE = 50; // % : au-delà, rappel anticipé à 48 h sur tous les canaux
 
@@ -110,20 +111,19 @@ async function executer(opts = {}) {
     for (const p of (await db.query('SELECT * FROM ia_profils_acces()')).rows) {
       for (const a of evaluerAcces(p)) {
         if (await dejaEnvoye(db, `alerte:${a.type}:${p.user_id}:${heure}`)) continue;
-        await db.query(
-          'INSERT INTO alertes_securite (user_id, structure_id, type, score, details) VALUES ($1, $2, $3, $4, $5)',
-          [p.user_id, p.structure_id, a.type, a.score, a.details]);
-        const { rows: dest } = await db.query(
-          `SELECT u.id FROM users u WHERE u.role_global = 'SUPER_ADMIN' AND u.is_active
-           UNION SELECT m.user_id FROM membres_structure m
-            WHERE m.structure_id = $1 AND m.role = 'ADMIN_STRUCTURE' AND m.statut = 'ACTIF' AND m.user_id <> $2`,
-          [p.structure_id, p.user_id]);
-        for (const d of dest) {
-          await notifier(db, d.id, { type: 'ALERTE_SECURITE', titre: 'Accès inhabituel détecté',
-            corps: `Comportement inhabituel (${a.type.toLowerCase().replace(/_/g, ' ')}) sur un compte soignant. À vérifier dans la supervision.`, data: {} });
-        }
+        // Enregistrement + diffusion immédiate (WebSocket, notification, Telegram d'astreinte)
+        await alertes.lever({ type: a.type, userId: p.user_id, structureId: p.structure_id, score: a.score, details: a.details }, db);
         bilan.alertes++;
       }
+    }
+
+    // 7 bis. Intégrité du journal d'audit : une rupture de la chaîne SHA-256 = alerte immédiate
+    await db.query("SELECT set_config('app.role', 'SUPER_ADMIN', false)");
+    const { rows: [j] } = await db.query('SELECT * FROM audit_verifier()').catch(() => ({ rows: [] }));
+    await db.query("SELECT set_config('app.role', 'SYSTEME', false)");
+    if (j && j.valide === false && !(await dejaEnvoye(db, `journal-altere:${j.premiere_rupture}`))) {
+      await alertes.lever({ type: 'JOURNAL_ALTERE', score: Number(j.premiere_rupture), details: { premiere_rupture: Number(j.premiere_rupture), entrees: Number(j.entrees) } }, db);
+      bilan.alertes++;
     }
 
     // 8. Blockchain : ancrage quotidien du journal d'audit (OpenTimestamps → Bitcoin)

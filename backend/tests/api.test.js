@@ -112,6 +112,18 @@ describe('Authentification', () => {
     const r = await api().post('/api/auth/login').send({ identifier: 'admin.cepiad@samaxhel.sn', password: MDP });
     assert.equal(r.status, 423);
     assert.equal(r.body.code, 'ACCOUNT_LOCKED');
+    // Supervision en temps réel : l'alerte est levée immédiatement, sans attendre l'analyse périodique
+    await new Promise((ok) => setTimeout(ok, 300));
+    const al = await requeteAdmin("SELECT a.type, a.details FROM alertes_securite a JOIN users u ON u.id = a.user_id WHERE u.email = 'admin.cepiad@samaxhel.sn' AND a.type = 'COMPTE_VERROUILLE'");
+    assert.equal(al.length, 1, 'une alerte COMPTE_VERROUILLE');
+    assert.equal(al[0].details.essais, 5);
+  });
+
+  test('santé détaillée pour Uptime Kuma : base et Redis contrôlés', async () => {
+    const r = await api().get('/health/complet');
+    assert.equal(r.status, 200);
+    assert.equal(r.body.base_de_donnees.ok, true);
+    assert.equal(r.body.redis.ok, true);
   });
 
   test('réponse identique pour un compte inexistant (pas d’énumération)', async () => {
@@ -1118,6 +1130,9 @@ describe('Sécurité avancée : IA prédictive et blockchain (mémoire 4.3.6)', 
     assert.ok(n.length >= 1, 'super-administrateur et administrateur prévenus');
     const b2 = await executer();
     assert.equal(b2.alertes, 0, 'pas d’alerte en double dans la même heure');
+    // Le journal falsifié plus haut a levé une alerte JOURNAL_ALTERE, une seule fois
+    const j = await requeteAdmin("SELECT count(*)::int AS n FROM alertes_securite WHERE type = 'JOURNAL_ALTERE'");
+    assert.equal(j[0].n, 1, 'rupture de la chaîne du journal signalée une fois');
   });
 
   test('IA prédictive : famille souvent absente → risque élevé, rappel anticipé à 48 h sur tous les canaux', async () => {

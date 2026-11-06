@@ -67,6 +67,8 @@ class SessionNotifier extends Notifier<EtatSession> {
       final r = await _api.get('/auth/me');
       state = EtatSession(verification: false, user: Utilisateur.fromJson(r['user']));
       _activerMessagerie();
+      // Session restaurée au redémarrage : on rouvre aussi le temps réel (messages, appels, alertes)
+      TempsReel.instance.connecter();
     } catch (_) {
       await Stockage.effacerSession();
       state = const EtatSession(verification: false);
