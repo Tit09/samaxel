@@ -4,7 +4,10 @@ FROM node:22-alpine
 WORKDIR /app
 ENV NODE_ENV=production SITE_DIR=/site PORT=3001
 COPY backend/package*.json ./
-RUN npm ci --omit=dev && npm cache clean --force
+# Dépendances de production, puis on RETIRE npm de l'image : inutile à l'exécution, il embarque
+# ses propres bibliothèques (failles signalées par Trivy). Moins de logiciels = moins de surface d'attaque.
+RUN npm ci --omit=dev && npm cache clean --force \
+ && rm -rf /usr/local/lib/node_modules/npm /usr/local/lib/node_modules/corepack /usr/local/bin/npm /usr/local/bin/npx /usr/local/bin/corepack
 COPY backend/src ./src
 COPY backend/scripts ./scripts
 COPY backend/db ./db
