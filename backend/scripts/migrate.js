@@ -21,7 +21,7 @@ async function main() {
     database: process.env.DB_NAME,
     user: process.env.DB_ADMIN_USER,
     password: process.env.DB_ADMIN_PASSWORD,
-    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: true } : undefined, // TLS vérifié (anti-MITM)
   });
   await admin.connect();
 

@@ -77,7 +77,7 @@ class _StudioVoixEcranState extends ConsumerState<StudioVoixEcran> {
                 ref.invalidate(_catalogueVoixProvider);
                 if (ctx.mounted) {
                   Navigator.pop(ctx);
-                  toast(context, 'Voix enregistrée : elle est jouée à tous les utilisateurs.');
+                  toast(ctx, 'Voix enregistrée : elle est jouée à tous les utilisateurs.');
                 }
               } catch (e) {
                 if (ctx.mounted) toast(ctx, messageErreur(e), erreur: true);

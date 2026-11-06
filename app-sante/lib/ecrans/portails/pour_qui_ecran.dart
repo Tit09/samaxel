@@ -14,7 +14,7 @@ class PourQuiEcran extends StatelessWidget {
 
   Future<void> _famille(BuildContext context, String pourQui) async {
     await Stockage.ecrire(Stockage.kPourQui, pourQui);
-    if (context.mounted)
+    if (context.mounted) {
       context.push(
         '/etablissements?public=${pourQui == 'ENFANT'
             ? 'ENFANT'
@@ -22,6 +22,7 @@ class PourQuiEcran extends StatelessWidget {
             ? 'PERSONNE_AGEE'
             : 'ADULTE'}',
       );
+    }
   }
 
   @override

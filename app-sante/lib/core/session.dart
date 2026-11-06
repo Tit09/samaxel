@@ -90,7 +90,7 @@ class SessionNotifier extends Notifier<EtatSession> {
 
   Future<ResultatConnexion> connexion(String identifiant, String motDePasse, {String? portail}) async {
     try {
-      final r = await _api.post('/auth/login', {'identifier': identifiant.trim(), 'password': motDePasse, if (portail != null) 'portail': portail});
+      final r = await _api.post('/auth/login', {'identifier': identifiant.trim(), 'password': motDePasse, 'portail': ?portail});
       if (r['mfa_required'] == true) {
         return MfaRequis(r['mfa_token'], r['verification']?['destination'] ?? '');
       }

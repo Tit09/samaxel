@@ -35,8 +35,8 @@ class PortailEcran extends ConsumerWidget {
     if (choix == null || !context.mounted) return;
     try {
       final r = await Api.instance.post('/portails/$code/inscription', {
-        if (service != null) 'service_code': service,
-        if (choix.personne != null) 'personne_id': choix.personne,
+        'service_code': ?service,
+        'personne_id': ?choix.personne,
         if (choix.motif.isNotEmpty) 'motif': choix.motif,
         'origine': 'PORTAIL',
       });

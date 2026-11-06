@@ -367,15 +367,19 @@ Future<void> payerTicket(BuildContext context, WidgetRef ref, Maison m) async {
             ]),
             const SizedBox(height: 10),
             const Text('1. Pour quoi ?', style: TextStyle(fontWeight: FontWeight.w800)),
-            for (final t in tarifs)
-              RadioListTile<Tarif>(
-                value: t,
-                groupValue: tarif,
-                onChanged: (v) => set(() => tarif = v),
-                contentPadding: EdgeInsets.zero,
-                title: Text(t.libelle),
-                secondary: Text(fcfa(t.montant), style: TextStyle(fontWeight: FontWeight.w900, color: e.teinte)),
-              ),
+            RadioGroup<Tarif>(
+              groupValue: tarif,
+              onChanged: (v) => set(() => tarif = v),
+              child: Column(children: [
+                for (final t in tarifs)
+                  RadioListTile<Tarif>(
+                    value: t,
+                    contentPadding: EdgeInsets.zero,
+                    title: Text(t.libelle),
+                    secondary: Text(fcfa(t.montant), style: TextStyle(fontWeight: FontWeight.w900, color: e.teinte)),
+                  ),
+              ]),
+            ),
             if (m.dossiers.length > 1) ...[
               const Text('2. Pour qui ?', style: TextStyle(fontWeight: FontWeight.w800)),
               Wrap(spacing: 8, children: [

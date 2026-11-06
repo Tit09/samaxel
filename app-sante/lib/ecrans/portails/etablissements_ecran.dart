@@ -60,11 +60,13 @@ class _EtablissementsEcranState extends ConsumerState<EtablissementsEcran> {
     setState(() => _localisation = true);
     try {
       var p = await Geolocator.checkPermission();
-      if (p == LocationPermission.denied)
+      if (p == LocationPermission.denied) {
         p = await Geolocator.requestPermission();
+      }
       if (p == LocationPermission.denied ||
-          p == LocationPermission.deniedForever)
+          p == LocationPermission.deniedForever) {
         throw Exception();
+      }
       final pos = await Geolocator.getCurrentPosition().timeout(
         const Duration(seconds: 12),
       );
@@ -73,12 +75,13 @@ class _EtablissementsEcranState extends ConsumerState<EtablissementsEcran> {
         _lng = pos.longitude;
       });
     } catch (_) {
-      if (mounted)
+      if (mounted) {
         toast(
           context,
           'Position indisponible : cherchez par nom ou par ville.',
           erreur: true,
         );
+      }
     } finally {
       if (mounted) setState(() => _localisation = false);
     }

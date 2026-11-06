@@ -29,6 +29,21 @@ function verifier(langue, cle) {
   if (!CLE.test(cle)) throw badRequest('Clé de phrase invalide', 'CLE_INVALIDE');
 }
 
+/**
+ * Chemin d'un fichier de voix, construit UNIQUEMENT à partir d'une langue de la liste fermée
+ * et d'une clé [a-z0-9_] (aucun « .. » ni « / » possible), puis contrôlé : le chemin final doit
+ * rester dans le dossier des voix (défense en profondeur contre la traversée de répertoires).
+ */
+function cheminVoix(langue, cle, ext) {
+  verifier(langue, cle);
+  if (ext !== undefined && !EXTS.includes(ext)) throw badRequest('Format audio non pris en charge', 'FORMAT_AUDIO');
+  const base = path.resolve(DOSSIER);
+  // nosemgrep: javascript.express.security.audit.express-path-join-resolve-traversal.express-path-join-resolve-traversal -- entrées validées par liste blanche et contrôle de préfixe ci-dessous
+  const cible = path.resolve(base, langue, ext === undefined ? '' : `${cle}.${ext}`);
+  if (cible !== base && !cible.startsWith(base + path.sep)) throw badRequest('Chemin refusé', 'CHEMIN_INVALIDE');
+  return cible;
+}
+
 function catalogue(req, res) {
   const fichiers = {};
   let maj = 0;
@@ -54,10 +69,9 @@ function enregistrer(req, res) {
   const ext = TYPES[type];
   if (!ext) throw badRequest('Format audio non pris en charge', 'FORMAT_AUDIO');
   if (!Buffer.isBuffer(req.body) || req.body.length < 1500) throw badRequest('Enregistrement vide ou trop court', 'AUDIO_VIDE');
-  const d = path.join(DOSSIER, langue);
-  fs.mkdirSync(d, { recursive: true });
-  for (const e of EXTS) fs.rmSync(path.join(d, `${cle}.${e}`), { force: true });
-  fs.writeFileSync(path.join(d, `${cle}.${ext}`), req.body);
+  fs.mkdirSync(cheminVoix(langue, cle), { recursive: true });
+  for (const e of EXTS) fs.rmSync(cheminVoix(langue, cle, e), { force: true });
+  fs.writeFileSync(cheminVoix(langue, cle, ext), req.body);
   res.status(201).json({ url: `/media-voix/${langue}/${cle}.${ext}`, octets: req.body.length });
 }
 
@@ -66,7 +80,7 @@ function supprimer(req, res) {
   verifier(langue, cle);
   let n = 0;
   for (const e of EXTS) {
-    const f = path.join(DOSSIER, langue, `${cle}.${e}`);
+    const f = cheminVoix(langue, cle, e);
     if (fs.existsSync(f)) { fs.rmSync(f); n++; }
   }
   if (!n) throw notFound('Aucune voix pour cette phrase');
