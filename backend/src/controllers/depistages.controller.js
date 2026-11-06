@@ -15,7 +15,8 @@ function questionnairePublic(q) {
     ...q,
     questions: q.questions.map((x) => ({
       ...x,
-      options: ECHELLES[x.echelle],
+      // chaque réponse a sa voix (« rep_freq_2 » = « Souvent ») pour les parents qui ne lisent pas
+      options: ECHELLES[x.echelle].map((o) => ({ ...o, audio_key: `rep_${x.echelle.toLowerCase()}_${o.valeur}` })),
       audio_key: `${q.code.toLowerCase()}_q${x.id}`,
     })),
   };

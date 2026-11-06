@@ -5,7 +5,7 @@ require('dotenv').config({ quiet: true });
 const c = new Client({
   host: process.env.DB_HOST, port: +process.env.DB_PORT, database: process.env.DB_NAME,
   user: process.env.DB_ADMIN_USER, password: process.env.DB_ADMIN_PASSWORD,
-  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+  ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: true } : undefined, // TLS vérifié (anti-MITM)
 });
 c.connect()
   .then(() => c.query('SELECT count(*)::int AS n FROM users'))

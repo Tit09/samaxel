@@ -1,0 +1,37 @@
+// Inscription d'un nouveau parent → code reçu par SMS (affiché dans le journal du backend) → ajout d'un enfant.
+const { chromium } = require('playwright');
+const fs = require('fs');
+(async () => {
+  const b = await chromium.launch();
+  const ctx = await b.newContext({ viewport: { width: 412, height: 860 }, deviceScaleFactor: 2 });
+  const p = await ctx.newPage();
+  const err = [];
+  p.on('response', async (r) => { if (r.status() >= 400 && r.url().includes(':3001')) err.push(r.status() + ' ' + r.url() + ' ' + (await r.text().catch(() => '')).slice(0, 200)); });
+  let n = 0; const shot = async (x) => { await p.waitForTimeout(1000); await p.screenshot({ path: `/home/claude/captures/inscription_${String(++n).padStart(2, '0')}_${x}.png` }); };
+  const sem = async () => { await p.evaluate(() => document.querySelector('flt-semantics-placeholder')?.click()); await p.waitForTimeout(300); };
+  const clic = async (re, role = 'button') => { await sem(); await p.getByRole(role, { name: re }).first().click(); await p.waitForTimeout(1300); };
+  const saisir = async (nom, v) => { await sem(); const l = p.getByRole('textbox', { name: nom }).first(); await l.click(); await l.fill(v); };
+  const tel = '77' + String(Math.floor(1000000 + Math.random() * 8999999));
+  await p.goto('http://localhost:8080/', { waitUntil: 'networkidle' }); await p.waitForTimeout(5000);
+  await clic(/Wolof/); await shot('wolof_choisi');
+  await clic(/Créer mon compte parent/);
+  await saisir('Votre prénom', 'Fatou'); await saisir('Votre nom', 'Ndiaye');
+  await saisir('Numéro de téléphone', tel); await saisir('Mot de passe', 'Ndiaye2026a');
+  await clic(/Votre région/); await clic(/^Thiès$/, 'menuitem').catch(() => clic(/Thiès/, 'option'));
+  await shot('etape1');
+  await clic(/Continuer/);
+  await saisir('Qu’est-ce qui vous inquiète chez votre enfant ? (facultatif)', 'Mon fils de 4 ans ne parle pas encore et ne regarde pas quand on l’appelle.');
+  await clic(/Un peu|Parfois|Non|Oui/).catch(() => {});
+  await shot('etape2');
+  await clic(/Continuer/);
+  await clic(/conditions d’utilisation/, 'checkbox'); await clic(/informations de santé/, 'checkbox');
+  await shot('etape3');
+  await clic(/Créer mon compte$/);
+  await p.waitForTimeout(2500); await shot('code');
+  const log = fs.readFileSync('/home/claude/backend.log', 'utf8');
+  const code = [...log.matchAll(/\[OTP:[a-z_]+\][^\n]*(?:→|->) (\d{6})/g)].map((m) => m[1]).pop();
+  await sem(); const c = p.getByRole('textbox').first(); await c.click(); await p.keyboard.type(code); await p.waitForTimeout(4000);
+  await shot('connecte');
+  console.log('téléphone', tel, 'erreurs', err);
+  await b.close();
+})();

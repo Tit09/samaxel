@@ -83,7 +83,8 @@ const env = {
     database: process.env.DB_NAME,
     user: process.env.APP_DB_USER,
     password: process.env.APP_DB_PASSWORD,
-    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: false } : undefined,
+    // TLS vérifié (certificat de l'hébergeur contrôlé) : protège contre l'interception (MITM)
+    ssl: process.env.DB_SSL === 'true' ? { rejectUnauthorized: true } : undefined,
   },
 
   redis: {

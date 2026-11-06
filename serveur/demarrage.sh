@@ -19,9 +19,10 @@ if [ ! -f "$D/.initialise" ]; then
   node scripts/seed.js
   node scripts/import-osm.js
   node scripts/import-annuaire.js
-  node scripts/comptes-etablissements.js
   touch "$D/.initialise"
 fi
+# À chaque démarrage (sans effet si déjà fait) : comptes des établissements et tarifs ajoutés par les mises à jour
+node scripts/comptes-etablissements.js || true
 echo "════════════════════════════════════════════════════════════════"
 echo " SAMA XHEL est prêt."
 echo "   Sur cet ordinateur : http://localhost:3001"

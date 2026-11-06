@@ -1,0 +1,10 @@
+assistant_salut|Nanga def. Man maay ndimbalkatu SAMA XHEL. Wax ma lu sa doom soxla.
+assistant_structure|Lii mooy béréb yi mën a dimbali sa doom. Yi gëna jege ñoo jiitu. Bësal butoŋ wu wert wi ngir woo leen.
+assistant_rdv|Lii mooy say randewu. Bësal ci butoŋ bi ngir laaj beneen.
+assistant_test|Dinaa la laaj ay laaj. Déglul, te bësal ci tontu bi. Lii du ab diagnostic.
+assistant_transmis|Jot naa sa kàddu. Yónne naa ko ekip biy topp sa doom. Dinañu la tontu.
+assistant_repeter|Dégguma ko bu baax. Ndax mën nga ko waxaat, jege telefon bi?
+assistant_urgence|Su sa doom nekkee ci musiba léegi, woo SAMU ci benn junni juroom téeméeri fukk ak juroom. Xamal naa it ekip biy topp sa doom.
+assistant_aide|Bësal ci butoŋ bi ngir dégg bépp xët ci sa làkk. Mën nga tamit duggu ci mbooloo waajur yi.
+crise|Doo kenn. Waxal léegi ak ab nit ku nga wóolu. Su musiba amee, woo SAMU ci benn junni juroom téeméeri fukk ak juroom.
+bienvenue|Dalal ak jàmm ci SAMA XHEL. Dinañu la dimbali ngir toppatoo sa doom. Tànnal sa làkk.

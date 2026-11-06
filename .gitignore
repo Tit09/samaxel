@@ -12,3 +12,9 @@ app-sante/build/
 app-sante/.dart_tool/
 livrables/
 *.log
+app-sante/**/build/
+app-sante/**/.gradle/
+app-sante/**/.kotlin/
+app-sante/**/.cxx/
+app-sante/ios/Pods/
+app-sante/android/local.properties

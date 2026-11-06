@@ -11,6 +11,7 @@ const { Client } = require('pg');
 require('dotenv').config({ path: path.join(__dirname, '..', '.env'), quiet: true });
 process.env.NODE_ENV = 'test';
 process.env.DB_NAME = `${process.env.DB_NAME}_test`;
+process.env.VOIX_DIR = require('fs').mkdtempSync(require('path').join(require('os').tmpdir(), 'voix-test-'));
 
 let pret = false;
 async function preparerBase() {

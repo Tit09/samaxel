@@ -1,0 +1,18 @@
+# Fins de ligne : les scripts lancés dans Docker (Linux) doivent rester en LF,
+# même quand le dépôt est cloné sous Windows (sinon « set -e\r » casse le démarrage).
+* text=auto eol=lf
+*.bat text eol=crlf
+*.ps1 text eol=crlf
+# Fichiers binaires : jamais modifiés par Git
+*.apk binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.webp binary
+*.mp3 binary
+*.wav binary
+*.ots binary
+*.xlsx binary
+*.pdf binary
+*.ttf binary
+*.otf binary

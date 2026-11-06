@@ -1291,3 +1291,27 @@ describe('La maison de l’hôpital : médecin visible, caisse, tickets, file d�
     assert.equal(reg.body.patients[0].date_naissance.slice(0, 10), '1990-03-12');
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+describe('Studio des voix : de vraies voix en langues nationales', () => {
+  test('le super-admin enregistre une phrase en sérère ; tout le monde peut l’écouter ; une famille ne peut pas en déposer', async () => {
+    const os = require('os'); const fs = require('fs'); const path = require('path');
+    process.env.VOIX_DIR = process.env.VOIX_DIR || fs.mkdtempSync(path.join(os.tmpdir(), 'voix-'));
+    const [u] = await requeteAdmin("SELECT id FROM users WHERE email = 'admin@samaxhel.sn'");
+    const r1 = await api().post('/api/auth/login').send({ identifier: 'admin@samaxhel.sn', password: MDP });
+    const r2 = await api().post('/api/auth/mfa/verify').send({ mfa_token: r1.body.mfa_token, code: otp.dernierCodePourTests('mfa', u.id) });
+    const admin = bearer(r2.body.token);
+    const audio = Buffer.concat([Buffer.from('ID3'), Buffer.alloc(4000, 7)]);
+    const ok = await api().post('/api/admin/voix/srr/bienvenue').set(admin).set('Content-Type', 'audio/mpeg').send(audio);
+    assert.equal(ok.status, 201, JSON.stringify(ok.body));
+    const cat = await api().get('/api/voix/catalogue');
+    assert.match(cat.body.fichiers.srr.bienvenue, /^\/media-voix\/srr\/bienvenue\.mp3$/);
+    const fichier = await api().get(cat.body.fichiers.srr.bienvenue);
+    assert.equal(fichier.status, 200);
+    const mauvais = await api().post('/api/admin/voix/xx/bienvenue').set(admin).set('Content-Type', 'audio/mpeg').send(audio);
+    assert.equal(mauvais.status, 400, 'langue inconnue refusée');
+    const famille = await api().post('/api/admin/voix/srr/bienvenue').set(bearer(S.parent.token)).set('Content-Type', 'audio/mpeg').send(audio);
+    assert.equal(famille.status, 403);
+    assert.equal((await api().delete('/api/admin/voix/srr/bienvenue').set(admin)).status, 200);
+  });
+});

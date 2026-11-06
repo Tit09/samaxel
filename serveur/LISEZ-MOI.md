@@ -107,7 +107,6 @@ Un compte d'un établissement est refusé sur le portail d'un autre.
 ```powershell
 cd C:\SAMA-XHEL\serveur
 docker compose up -d --build
-docker compose exec api node scripts/comptes-etablissements.js
 ```
 
 3. Sur le téléphone : **désinstallez l'ancienne application**, puis retéléchargez-la depuis

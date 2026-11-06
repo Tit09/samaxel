@@ -1,0 +1,17 @@
+#!/bin/sh
+# Garde-fou AVANT chaque commit (activé par : git config core.hooksPath .githooks)
+#  1. refuse tout fichier de secrets (.env, clés privées, clés de chiffrement) ;
+#  2. si gitleaks est installé, cherche les secrets écrits dans le code (jetons, mots de passe).
+interdits=$(git diff --cached --name-only --diff-filter=ACM | grep -E '(^|/)\.env$|(^|/)cles\.env$|\.pem$|\.key$|\.p12$|\.jks$|key\.properties$|(^|/)keys/' )
+if [ -n "$interdits" ]; then
+  echo "BLOQUÉ : ces fichiers contiennent des secrets et ne doivent jamais aller sur GitHub :"
+  echo "$interdits"
+  echo "Retirez-les avec : git rm --cached <fichier>"
+  exit 1
+fi
+if command -v gitleaks >/dev/null 2>&1; then
+  gitleaks protect --staged --redact --no-banner || { echo "BLOQUÉ par gitleaks : un secret a été trouvé dans les changements."; exit 1; }
+else
+  echo "(conseil : installez gitleaks pour une vérification complète : winget install gitleaks)"
+fi
+exit 0

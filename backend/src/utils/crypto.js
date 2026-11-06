@@ -13,11 +13,14 @@ const crypto = require('crypto');
 const env = require('../config/env');
 
 const VERSION = 'v1';
+// Étiquette d'authentification GCM : 16 octets imposés au déchiffrement (une étiquette
+// raccourcie, plus facile à falsifier, est refusée).
+const TAG = { authTagLength: 16 };
 
 function chiffrer(valeur) {
   if (valeur === null || valeur === undefined || valeur === '') return null;
   const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv('aes-256-gcm', env.crypto.encryptionKey, iv);
+  const cipher = crypto.createCipheriv('aes-256-gcm', env.crypto.encryptionKey, iv, TAG);
   const chiffre = Buffer.concat([cipher.update(String(valeur), 'utf8'), cipher.final()]);
   const tag = cipher.getAuthTag();
   return [VERSION, iv.toString('base64'), tag.toString('base64'), chiffre.toString('base64')].join(':');
@@ -28,7 +31,7 @@ function dechiffrer(stocke) {
   const [version, iv, tag, chiffre] = String(stocke).split(':');
   if (version !== VERSION) throw new Error('Format de chiffrement inconnu');
   const decipher = crypto.createDecipheriv(
-    'aes-256-gcm', env.crypto.encryptionKey, Buffer.from(iv, 'base64'),
+    'aes-256-gcm', env.crypto.encryptionKey, Buffer.from(iv, 'base64'), TAG,
   );
   decipher.setAuthTag(Buffer.from(tag, 'base64'));
   return Buffer.concat([
@@ -42,12 +45,12 @@ const chiffrerJson = (obj) => chiffrer(JSON.stringify(obj));
 /** Fichiers binaires (vocaux) : iv(12) | tag(16) | chiffré — stockés en bytea */
 function chiffrerOctets(octets) {
   const iv = crypto.randomBytes(12);
-  const cipher = crypto.createCipheriv('aes-256-gcm', env.crypto.encryptionKey, iv);
+  const cipher = crypto.createCipheriv('aes-256-gcm', env.crypto.encryptionKey, iv, TAG);
   const chiffre = Buffer.concat([cipher.update(octets), cipher.final()]);
   return Buffer.concat([iv, cipher.getAuthTag(), chiffre]);
 }
 function dechiffrerOctets(stocke) {
-  const decipher = crypto.createDecipheriv('aes-256-gcm', env.crypto.encryptionKey, stocke.subarray(0, 12));
+  const decipher = crypto.createDecipheriv('aes-256-gcm', env.crypto.encryptionKey, stocke.subarray(0, 12), TAG);
   decipher.setAuthTag(stocke.subarray(12, 28));
   return Buffer.concat([decipher.update(stocke.subarray(28)), decipher.final()]);
 }
