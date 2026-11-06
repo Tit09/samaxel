@@ -33,12 +33,12 @@ Langue langueParCode(String code) => langues.firstWhere((l) => l.code == code, o
 /// Guide vocal.
 ///
 /// Les phrases du guide étant fixes, elles sont enregistrées UNE fois en fichiers audio
-/// (voix IA sénégalaises : Kiriku-Wolof-TTS pour le wolof, Meta MMS pour les autres
-/// langues), validées par des locuteurs natifs, puis intégrées à l'application :
+/// (voix IA : CONCREE Adia_TTS pour le wolof, Meta MMS pour pulaar, diola, mandinka, bambara,
+/// Piper pour le français et l'anglais), validées par des locuteurs natifs, puis intégrées :
 ///     `assets/voix/<langue>/<cle>.mp3`
 /// → fonctionne sans internet et sans coût.
-/// Si le fichier d'une langue n'existe pas encore, la synthèse vocale du téléphone lit
-/// la phrase en français (ou en anglais).
+/// Si le fichier d'une langue n'existe pas encore, on joue la voix française enregistrée ;
+/// la synthèse du téléphone ne sert que pour les textes variables (noms, dates).
 class GuideVocal {
   GuideVocal._();
   static final GuideVocal instance = GuideVocal._();
@@ -107,14 +107,19 @@ class GuideVocal {
       } catch (_) {}
     }
     final assets = await _listeAssets();
-    for (final ext in ['mp3', 'wav', 'm4a']) {
-      final chemin = 'assets/voix/$langue/$cle.$ext';
-      if (assets.contains(chemin)) {
-        try {
-          await _player.setAsset(chemin);
-          await _player.play();
-          return true;
-        } catch (_) {}
+    // Voix intégrée dans la langue choisie ; sinon la voix française enregistrée (naturelle),
+    // plutôt que la voix robotique du téléphone.
+    final ordre = [langue, if (langue != 'fr' && !(langue == 'en' && texteEn != null)) 'fr'];
+    for (final l in ordre) {
+      for (final ext in ['mp3', 'wav', 'm4a']) {
+        final chemin = 'assets/voix/$l/$cle.$ext';
+        if (assets.contains(chemin)) {
+          try {
+            await _player.setAsset(chemin);
+            await _player.play();
+            return l == langue;
+          } catch (_) {}
+        }
       }
     }
     final anglais = langue == 'en' && texteEn != null;

@@ -123,6 +123,13 @@ r.put('/users/me/public-key', verifyToken, validate({ body: z.object({
   public_key: z.string().regex(/^[A-Za-z0-9+/=_-]{40,100}$/, 'clé publique invalide'),
 }) }), msg.publierCle);
 r.get('/users/:id/public-key', verifyToken, validate(id), msg.lireCle);
+// Sauvegarde de la clé de messagerie, chiffrée par l'appareil avec le mot de passe (illisible pour le serveur)
+const b64 = (max) => z.string().min(8).max(max).regex(/^[A-Za-z0-9+/=_-]+$/);
+r.get('/users/me/cle-messagerie', verifyToken, msg.lireSauvegarde);
+r.put('/users/me/cle-messagerie', verifyToken, validate({ body: z.object({
+  c: b64(200), sel: b64(64), nonce: b64(64), iter: z.number().int().min(100000).max(5000000),
+  pk: z.string().regex(/^[A-Za-z0-9+/=_-]{40,100}$/, 'clé publique invalide'),
+}) }), audit('MODIFICATION', 'cle_messagerie'), msg.ecrireSauvegarde);
 
 r.get('/consentements', verifyToken, PARENT, divers.listerConsentements);
 r.post('/consentements', verifyToken, PARENT, validate({ body: z.object({
@@ -336,10 +343,18 @@ r.post('/conversations', verifyToken, checkRole('PARENT', ...ROLES_CLINIQUES), v
 r.get('/conversations/:id/messages', verifyToken, validate({ ...id, query: z.object({
   avant: date.optional(), limit: z.coerce.number().int().min(1).max(200).default(50),
 }) }), msg.messages);
+// Texte : 20 000 caractères chiffrés au plus ; message vocal : 60 s (≈ 1,3 Mo chiffré)
 r.post('/conversations/:id/messages', verifyToken, validate({ ...id, body: z.object({
-  ciphertext: z.string().min(16).max(20000).regex(/^[A-Za-z0-9+/=_-]+$/, 'texte chiffré invalide'),
+  type: z.enum(['TEXTE', 'AUDIO']).default('TEXTE'),
+  duree_s: z.number().int().min(1).max(60).optional(),
+  ciphertext: z.string().min(16).max(1400000).regex(/^[A-Za-z0-9+/=_-]+$/, 'texte chiffré invalide'),
   nonce: z.string().min(12).max(64).regex(/^[A-Za-z0-9+/=_-]+$/),
-}) }), msg.envoyer);
+}).refine((b) => b.type === 'AUDIO' || b.ciphertext.length <= 20000, { message: 'message trop long', path: ['ciphertext'] }) }), msg.envoyer);
+// Appels audio et vidéo (parent ↔ son soignant)
+r.post('/conversations/:id/appels', verifyToken, checkRole('PARENT', ...ROLES_CLINIQUES),
+  validate({ ...id, body: z.object({ mode: z.enum(['AUDIO', 'VIDEO']) }) }), audit('CREATION', 'appel'), msg.lancerAppel);
+r.post('/appels/:id/repondre', verifyToken, validate({ ...id, body: z.object({ accepte: z.boolean() }) }), msg.repondreAppel);
+r.post('/appels/:id/fin', verifyToken, validate(id), msg.terminerAppel);
 r.put('/conversations/:id/lu', verifyToken, validate(id), msg.marquerLu);
 
 // ═══ Journal d'humeur (IA émotionnelle) ═══════════════════════════════════

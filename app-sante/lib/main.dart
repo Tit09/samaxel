@@ -8,6 +8,7 @@ import 'core/maison.dart';
 import 'core/routeur.dart';
 import 'core/stockage.dart';
 import 'core/theme.dart';
+import 'widgets/appel_entrant.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -39,7 +40,8 @@ class SamaXhelApp extends ConsumerWidget {
         final mq = MediaQuery.of(context);
         return MediaQuery(
           data: mq.copyWith(textScaler: mq.textScaler.clamp(minScaleFactor: 1.0, maxScaleFactor: 1.4)),
-          child: child!,
+          // Appels audio/vidéo entrants : la sonnerie s'affiche par-dessus n'importe quel écran
+          child: AppelsEntrants(child: child!),
         );
       },
     );

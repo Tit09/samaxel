@@ -101,7 +101,7 @@ jobs:
       matrix:
         include:
           - { plateforme: android, os: ubuntu-24.04, commande: 'flutter build apk --release --split-per-abi', sortie: 'build/app/outputs/flutter-apk/*.apk' }
-          - { plateforme: web,     os: ubuntu-24.04, commande: 'flutter build web --release', sortie: 'build/web' }
+          - { plateforme: web,     os: ubuntu-24.04, commande: 'flutter build web --release --pwa-strategy=none --no-web-resources-cdn --base-href /app/', sortie: 'build/web' }
           - { plateforme: linux,   os: ubuntu-24.04, commande: 'flutter build linux --release', sortie: 'build/linux/x64/release/bundle' }
           - { plateforme: windows, os: windows-latest, commande: 'flutter build windows --release', sortie: 'build/windows/x64/runner/Release' }
           - { plateforme: macos,   os: macos-15, commande: 'flutter build macos --release', sortie: 'build/macos/Build/Products/Release/*.app' }

@@ -504,12 +504,14 @@ class Conversation {
 }
 
 class MessageChiffre {
-  MessageChiffre({required this.id, required this.senderId, required this.ciphertext, required this.nonce, this.date});
+  MessageChiffre({required this.id, required this.senderId, required this.ciphertext, required this.nonce, this.date, this.audio = false, this.duree});
   final String id;
   final String senderId;
   final String ciphertext;
   final String nonce;
   final DateTime? date;
+  final bool audio; // message vocal (chiffré de la même façon que le texte)
+  final int? duree;
 
   factory MessageChiffre.fromJson(Map<String, dynamic> j) => MessageChiffre(
         id: j['id'],
@@ -517,6 +519,8 @@ class MessageChiffre {
         ciphertext: j['ciphertext'],
         nonce: j['nonce'],
         date: _date(j['created_at']),
+        audio: j['type'] == 'AUDIO',
+        duree: (j['duree_s'] as num?)?.toInt(),
       );
 }
 

@@ -51,7 +51,7 @@ le terminal du backend (`[OTP:mfa] … → 123456`).
 ```bash
 flutter build apk --release --dart-define=API_URL=https://api.samaxhel.sn       # Android (.apk)
 flutter build appbundle --release --dart-define=API_URL=https://api.samaxhel.sn # Play Store (.aab)
-flutter build web --release --dart-define=API_URL=https://api.samaxhel.sn       # site web
+flutter build web --release --pwa-strategy=none --no-web-resources-cdn --base-href /app/   # version web (servie sous /app)
 flutter build windows --release --dart-define=API_URL=https://api.samaxhel.sn   # sur un PC Windows
 flutter build macos --release --dart-define=API_URL=https://api.samaxhel.sn     # sur un Mac
 flutter build ios --release --dart-define=API_URL=https://api.samaxhel.sn       # sur un Mac avec Xcode
