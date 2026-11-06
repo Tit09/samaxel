@@ -1,6 +1,6 @@
 # Image unique pour l'hébergement en ligne (Render) : API + site vitrine + application web + APK.
 # Construite depuis la RACINE du dépôt (backend/ et site-vitrine/ côte à côte).
-FROM node:22-alpine
+FROM node:25-alpine
 WORKDIR /app
 ENV NODE_ENV=production SITE_DIR=/site PORT=3001
 COPY backend/package*.json ./
