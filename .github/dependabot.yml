@@ -1,0 +1,23 @@
+# Dependabot : propose automatiquement une mise à jour quand une bibliothèque
+# utilisée par SAMA XHEL publie un correctif de sécurité (gratuit, dépôts privés compris).
+version: 2
+updates:
+  - package-ecosystem: npm
+    directory: /backend
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 5
+    groups:
+      correctifs: { update-types: [minor, patch] }
+  - package-ecosystem: pub
+    directory: /app-sante
+    schedule: { interval: weekly, day: monday }
+    open-pull-requests-limit: 5
+  - package-ecosystem: docker
+    directory: /backend
+    schedule: { interval: weekly, day: monday }
+  - package-ecosystem: docker
+    directory: /
+    schedule: { interval: weekly, day: monday }
+  - package-ecosystem: github-actions
+    directory: /
+    schedule: { interval: monthly }

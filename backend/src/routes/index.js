@@ -32,6 +32,7 @@ const ussd = require('../controllers/ussd.controller');
 const commu = require('../controllers/communaute.controller');
 const portails = require('../controllers/portails.controller');
 const caisse = require('../controllers/caisse.controller');
+const voix = require('../controllers/voix.controller');
 const canaux = require('../controllers/canaux.controller');
 const invit = require('../controllers/invitations.controller');
 
@@ -187,6 +188,12 @@ r.put('/inscriptions/:id', verifyToken, checkRole('SECRETAIRE', 'ADMIN_STRUCTURE
 }) }), audit('UPDATE', 'inscription'), portails.traiterInscription);
 r.get('/moi/etablissements/:code', verifyToken, PARENT, validate(codePortail), portails.maison);
 r.get('/etablissement/soignants', verifyToken, PRO, portails.soignantsEtablissement);
+
+// ═══ Studio des voix (guide vocal en langues nationales, voix de locuteurs natifs) ═══
+r.get('/voix/catalogue', voix.catalogue);
+const audioVoix = express.raw({ type: 'audio/*', limit: '3mb' });
+r.post('/admin/voix/:langue/:cle', verifyToken, checkRole('SUPER_ADMIN'), audioVoix, audit('UPDATE', 'voix'), voix.enregistrer);
+r.delete('/admin/voix/:langue/:cle', verifyToken, checkRole('SUPER_ADMIN'), audit('DELETE', 'voix'), voix.supprimer);
 
 // ═══ Caisse, tickets, file d'attente (entrée de l'hôpital) ═════════════════
 const CAISSE = checkRole('SECRETAIRE', 'ADMIN_STRUCTURE');

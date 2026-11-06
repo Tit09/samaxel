@@ -1,0 +1,23 @@
+const { chromium } = require('playwright');
+(async () => {
+  const b = await chromium.launch({ args: ['--autoplay-policy=no-user-gesture-required'] });
+  const p = await (await b.newContext({ viewport: { width: 412, height: 860 } })).newPage();
+  const audio = []; p.on('request', (r) => { if (/voix\/|media-voix/.test(r.url())) audio.push(r.url().split('/').slice(-2).join('/')); });
+  p.on('pageerror', (e) => console.log('ERR', e.message));
+  const sem = async () => { await p.evaluate(() => document.querySelector('flt-semantics-placeholder')?.click()); await p.waitForTimeout(250); };
+  await p.goto('http://localhost:3001/app/'); await p.waitForTimeout(6000);
+  await sem(); await p.getByRole('checkbox', { name: 'Pulaar' }).first().click(); await p.waitForTimeout(3000);
+  console.log('apres choix langue :', audio.splice(0));
+  await sem(); await p.getByText('J’ai déjà un compte').first().click(); await p.waitForTimeout(2500);
+  console.log('connexion :', audio.splice(0));
+  await sem(); const l = p.getByRole('textbox', { name: 'Téléphone ou e-mail' }).first(); await l.click(); await p.waitForTimeout(500); await p.keyboard.type('parent@samaxhel.sn', { delay: 40 });
+  await sem(); const m = p.getByRole('textbox', { name: 'Mot de passe' }).first(); await m.click(); await p.waitForTimeout(500); await p.keyboard.type('Demo@2026sx', { delay: 40 });
+  await sem(); await p.getByRole('button', { name: 'Se connecter' }).first().click(); await p.waitForTimeout(6000);
+  console.log('accueil :', audio.splice(0));
+  await p.goto('http://localhost:3001/app/#/test/TSA'); await p.waitForTimeout(9000);
+  console.log('test :', audio.splice(0));
+  await sem(); await p.getByRole('button', { name: /Écouter cette réponse/ }).first().click(); await p.waitForTimeout(2000);
+  console.log('reponse :', audio.splice(0));
+  await p.screenshot({ path: '/tmp/claude-0/-home-claude/813802f3-0949-5ced-84e7-1cfca7535a17/scratchpad/voix_test.png' });
+  await b.close();
+})().catch((e) => { console.error(e.message); process.exit(1); });

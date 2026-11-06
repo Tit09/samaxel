@@ -1,0 +1,23 @@
+module.exports = async ({ p, shot, clic, clicTexte, saisir }) => {
+  await clicTexte('Patients');
+  await shot('file_priorite');
+  await clicTexte('Demandes');
+  await shot('demandes');
+  await clicTexte('Ousmane');
+  await shot('dossier');
+  await p.mouse.wheel(0, 500); await shot('dossier_suite');
+  await clicTexte('Accepter', 2500);
+  await shot('dossier_accepte');
+  await clicTexte('Nouvelle consultation', 2000);
+  await saisir('Motif', 'Bilan initial — suspicion de TSA, régression du langage');
+  await saisir('Observations cliniques', 'Contact visuel fuyant, pas de pointage proto-déclaratif, perte de 5 mots depuis 3 mois. Audition à vérifier.');
+  await saisir('Recommandations pour la famille', 'Bilan ORL et orthophonique. Revenir dans 2 semaines.');
+  await saisir('Code diagnostic CIM-11 (facultatif)', '6A02');
+  await shot('consultation');
+  await clicTexte('Enregistrer et terminer', 2500);
+  await shot('apres_consultation');
+  await p.goto('http://localhost:8080/#/pro/accueil'); await p.waitForTimeout(3500);
+  await shot('tableau_de_bord');
+  await p.goto('http://localhost:8080/#/pro/agenda'); await p.waitForTimeout(3000);
+  await shot('agenda');
+};

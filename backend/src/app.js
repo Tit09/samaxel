@@ -37,6 +37,11 @@ app.use('/media', express.static(path.join(__dirname, '..', 'public'), {
   maxAge: '7d', index: false, dotfiles: 'ignore',
   setHeaders: (res) => res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'),
 }));
+// Voix enregistrées par les locuteurs natifs (studio des voix), dans le volume de données
+app.use('/media-voix', express.static(require('./controllers/voix.controller').DOSSIER, {
+  maxAge: '1h', index: false, dotfiles: 'ignore',
+  setHeaders: (res) => res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin'),
+}));
 // Application Android à télécharger (fichiers .apk déposés dans public/telechargements)
 app.use('/telechargements', express.static(path.join(__dirname, '..', 'public', 'telechargements'), {
   index: false, dotfiles: 'ignore', maxAge: '1h',
