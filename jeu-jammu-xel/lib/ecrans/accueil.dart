@@ -162,7 +162,17 @@ class _BoutonLangue extends StatelessWidget {
           child: Row(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Image.asset(sprite('i_hp'), width: d.u * 6),
+              Container(
+                width: d.u * 6.5,
+                height: d.u * 6.5,
+                decoration: BoxDecoration(
+                  color: choisi ? C.blanc : C.ocre,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: C.encre, width: d.u * 0.3),
+                ),
+                padding: EdgeInsets.all(d.u * 1.1),
+                child: Image.asset(sprite('i_hp')),
+              ),
               SizedBox(width: d.u * 1.5),
               Txt(langue.nom, taille: 5.4, gras: true),
               if (choisi) ...[SizedBox(width: d.u), Icon(Icons.check_rounded, size: d.u * 6, color: C.encre)],

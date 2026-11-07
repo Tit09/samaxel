@@ -102,12 +102,16 @@ class _XelEcranState extends State<XelEcran> {
                                   child: Row(
                                     children: [
                                       Container(
-                                width: d.u * 6,
-                                height: d.u * 6,
-                                decoration: BoxDecoration(color: C.ocre, shape: BoxShape.circle, border: Border.all(color: C.encre, width: d.u * 0.3)),
-                                padding: EdgeInsets.all(d.u),
-                                child: Image.asset(sprite('i_hp')),
-                              ),
+                                        width: d.u * 6,
+                                        height: d.u * 6,
+                                        decoration: BoxDecoration(
+                                          color: C.ocre,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(color: C.encre, width: d.u * 0.3),
+                                        ),
+                                        padding: EdgeInsets.all(d.u),
+                                        child: Image.asset(sprite('i_hp')),
+                                      ),
                                       SizedBox(width: d.u),
                                       Expanded(child: Txt(e.t(q.cle), taille: 3.8, gras: true)),
                                     ],
@@ -156,9 +160,9 @@ class _XelEcranState extends State<XelEcran> {
                                   Expanded(
                                     child: TextField(
                                       controller: _champ,
-                                focusNode: _focus,
+                                      focusNode: _focus,
                                       onSubmitted: poser,
-                                onEditingComplete: () {}, // garde le clavier ouvert pour la question suivante
+                                      onEditingComplete: () {}, // garde le clavier ouvert pour la question suivante
                                       textInputAction: TextInputAction.send,
                                       style: TextStyle(fontFamily: 'Andika', fontSize: d.t(4.4)),
                                       decoration: InputDecoration(

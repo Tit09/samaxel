@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
 
@@ -7,12 +8,15 @@ import '../../widgets/communs.dart';
 
 /// Annuaire des structures de santé mentale (site SAMA XHEL).
 /// Le jeu ne transmet rien : il ouvre seulement le navigateur du téléphone.
-const adresseAnnuaire = 'https://sama-xhel.onrender.com/';
+const adresseAnnuaire = 'https://sama-xhel.onrender.com/#trouver';
+
+/// Version web (servie par le serveur SAMA XHEL sous /jeu/) : l'annuaire est sur le même site.
+Uri lienAnnuaire() => kIsWeb ? Uri.base.resolve('/#trouver') : Uri.parse(adresseAnnuaire);
 
 Future<void> trouverStructure(BuildContext context) async {
   final e = EtatScope.lire(context);
   await e.dire('trouver_structure_voix');
-  await launchUrl(Uri.parse(adresseAnnuaire), mode: LaunchMode.externalApplication);
+  await launchUrl(lienAnnuaire(), mode: kIsWeb ? LaunchMode.platformDefault : LaunchMode.externalApplication);
 }
 
 const fiches = ['autisme', 'tdah', 'depression', 'memoire', 'addiction'];

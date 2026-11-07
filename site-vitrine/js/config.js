@@ -17,6 +17,10 @@
     // Dons : lien marchand Wave Business, numéro de l'agent Orange Money
     LIEN_WAVE: 'https://pay.wave.com/m/M_sn_GUIRN49SXtRv/c/sn/',
     NUMERO_OM: '+221774702157',
+    // Jeu JÀMMU XEL : version web (/jeu/) et APK servis par le même serveur
+    LIEN_JEU: `${local ? 'http://localhost:3001' : memeServeur ? '' : `${location.protocol}//${location.hostname}:3001`}/jeu/`,
+    LIEN_JEU_APK: `${local ? 'http://localhost:3001' : memeServeur ? '' : `${location.protocol}//${location.hostname}:3001`}/telechargements/JAMMU-XEL.apk`,
+    LIEN_JEU_APK_ANCIEN: `${local ? 'http://localhost:3001' : memeServeur ? '' : `${location.protocol}//${location.hostname}:3001`}/telechargements/JAMMU-XEL-32bits.apk`,
     LIEN_APK_ANCIEN: `${local ? 'http://localhost:3001' : memeServeur ? '' : `${location.protocol}//${location.hostname}:3001`}/telechargements/SAMA-XHEL-Sante-32bits.apk`,
   };
 }());

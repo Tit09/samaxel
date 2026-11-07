@@ -1382,3 +1382,24 @@ describe('Studio des voix : de vraies voix en langues nationales', () => {
     assert.equal((await api().delete('/api/admin/voix/srr/bienvenue').set(admin)).status, 200);
   });
 });
+
+// ═══════════════════════════════════════════════════════════════════════════
+describe('Jeu JÀMMU XEL servi par le même serveur', () => {
+  test('la version web du jeu est servie sous /jeu/, avec une CSP sans service extérieur', async () => {
+    const r = await api().get('/jeu/');
+    assert.equal(r.status, 200);
+    assert.match(r.text, /<base href="\/jeu\/">/);
+    const csp = r.headers['content-security-policy'];
+    assert.match(csp, /connect-src 'self'(;|$)/, 'le jeu ne contacte aucun service extérieur');
+    assert.match(csp, /frame-ancestors 'none'/);
+    const voix = await api().get('/jeu/assets/assets/voix/wo/bravo.mp3');
+    assert.equal(voix.status, 200, 'voix wolof disponible');
+  });
+  test("les APK du jeu (récent et ancien) se téléchargent comme ceux de l'application Santé", async () => {
+    for (const f of ['JAMMU-XEL.apk', 'JAMMU-XEL-32bits.apk']) {
+      const r = await api().head(`/telechargements/${f}`);
+      assert.equal(r.status, 200, f);
+      assert.equal(r.headers['content-type'], 'application/vnd.android.package-archive');
+    }
+  });
+});
