@@ -18,3 +18,6 @@ app-sante/**/.kotlin/
 app-sante/**/.cxx/
 app-sante/ios/Pods/
 app-sante/android/local.properties
+# SBOM générés et clé API locale : restent sur ce PC
+serveur/securite/sbom/
+serveur/securite/cle-dependency-track.txt

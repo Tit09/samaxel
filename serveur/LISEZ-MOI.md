@@ -169,3 +169,40 @@ Uptime Kuma démarre avec le reste : ouvrez `http://localhost:3002`.
 
 Test devant le jury : `docker compose stop postgres` → la sonde « API » passe au rouge et Telegram
 prévient ; `docker compose start postgres` → tout redevient vert.
+
+### 8.3 Tableau de bord de sécurité : SBOM + Trivy (OWASP Dependency-Track)
+Uptime Kuma dit si l'application **répond**. Ce tableau de bord dit si les **briques logicielles**
+qu'elle embarque (bibliothèques Node, paquets du système de l'image Docker, paquets Flutter) ont
+des failles connues, et suit l'évolution du risque jour après jour.
+
+Il demande 4 Go de mémoire : dans Docker Desktop, Settings → Resources, donnez au moins 6 Go
+(sous WSL 2, Docker prend par défaut la moitié de la mémoire du PC ; avec 8 Go de RAM, fermez les
+autres logiciels pendant la démonstration).
+
+**Une seule fois**
+1. Dans `C:\SAMA-XHEL\serveur` : `docker compose --profile securite up -d`
+2. Attendez 2 à 3 minutes (premier démarrage : téléchargement de la base des vulnérabilités),
+   puis ouvrez `http://localhost:8082`. Identifiant `admin`, mot de passe `admin` : il est demandé
+   de le changer aussitôt (choisissez le vôtre, ne l'écrivez nulle part sur GitHub).
+3. Administration → Analyzers → **Trivy** : cochez « Enable », Base URL `http://trivy:4954`,
+   API Token `jeton-trivy-local`, puis Save.
+4. Administration → Access Management → Teams → **Automation** : dans « Permissions », ajoutez
+   `PROJECT_CREATION_UPLOAD` ; dans « API Keys », cliquez sur **+** et copiez la clé affichée.
+
+**À chaque nouvelle version** (après `docker compose up -d --build`)
+```
+cd C:\SAMA-XHEL\serveur
+securite\envoyer-sbom.bat
+```
+La première fois, le script demande la clé copiée à l'étape 4 ; elle reste dans
+`serveur\securite\cle-dependency-track.txt` (ignoré par Git). Il produit les deux inventaires
+CycloneDX avec Trivy (image `samaxhel-api` et `app-sante\pubspec.lock`) et les envoie.
+Une à deux minutes plus tard, `http://localhost:8082` affiche :
+- **Dashboard** : nombre de failles du portefeuille par gravité, projets à risque, courbe dans le temps ;
+- **Projects** → un projet → **Components** (l'inventaire, la SBOM) et **Audit Vulnerabilities**
+  (chaque faille, sa gravité, la version corrigée ; « Analysis » pour noter la décision prise).
+
+Dependency-Track réanalyse tout seul chaque jour : une faille publiée demain sur une bibliothèque
+déjà embarquée apparaîtra sans rien relancer.
+
+Arrêter le tableau de bord (et libérer la mémoire) : `docker compose stop trivy dtrack-api dtrack-web`
