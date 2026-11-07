@@ -70,6 +70,40 @@ services:
     ports: ["3002:3001"]
     depends_on: [api]
 
+  # Tableau de bord de sécurité (SBOM + vulnérabilités) — OWASP Dependency-Track + Trivy.
+  # Facultatif, car il demande 4 Go de mémoire :
+  #   docker compose --profile securite up -d      → http://localhost:8082  (admin / admin au 1er lancement)
+  #   securite\envoyer-sbom.bat                     → génère les SBOM avec Trivy et les envoie au tableau de bord
+  # Dependency-Track garde l'inventaire des composants de chaque application, demande à Trivy
+  # lesquels ont des failles connues, recalcule chaque jour et trace l'évolution du risque.
+  trivy:
+    profiles: [securite]
+    image: aquasec/trivy:0.58.1
+    restart: unless-stopped
+    command: ["server", "--listen", "0.0.0.0:4954", "--token", "jeton-trivy-local"]
+    volumes: [trivycache:/root/.cache]
+    # Aucun port publié : seul Dependency-Track l'interroge (réseau interne Docker)
+
+  dtrack-api:
+    profiles: [securite]
+    image: dependencytrack/apiserver:4.13.2
+    restart: unless-stopped
+    environment:
+      ALPINE_DATABASE_MODE: embedded
+      JAVA_OPTIONS: "-Xmx4g"
+    volumes: [dtrack:/data]
+    ports: ["127.0.0.1:8081:8080"]   # API du tableau de bord, joignable seulement depuis ce PC
+    depends_on: [trivy]
+
+  dtrack-web:
+    profiles: [securite]
+    image: dependencytrack/frontend:4.13.2
+    restart: unless-stopped
+    environment:
+      API_BASE_URL: http://localhost:8081
+    ports: ["127.0.0.1:8082:8080"]
+    depends_on: [dtrack-api]
+
   # Adresse publique HTTPS GRATUITE (Cloudflare Tunnel, sans compte ni nom de domaine) :
   #   docker compose --profile public up -d
   #   docker compose logs tunnel | findstr trycloudflare      → https://xxxx.trycloudflare.com
@@ -96,6 +130,8 @@ services:
 
 volumes:
   kuma:
+  dtrack:
+  trivycache:
   pgdata:
   redisdata:
   donnees:
