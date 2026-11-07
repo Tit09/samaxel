@@ -74,7 +74,7 @@ jobs:
           if git ls-files | grep -E '(^|/)\.env$|cles\.env$|\.pem$|\.jks$|key\.properties$|(^|/)keys/'; then
             echo "::error::Fichier de secrets présent dans le dépôt"; exit 1; fi
       - name: Recherche de secrets (gitleaks)
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env: { GITHUB_TOKEN: '${{ secrets.GITHUB_TOKEN }}' }
       - name: Analyse statique (Semgrep, règles OWASP)
         run: pipx run semgrep scan --config p/owasp-top-ten --config p/nodejs --error --sarif-output=semgrep.sarif backend/src
