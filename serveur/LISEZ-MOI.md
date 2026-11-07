@@ -8,6 +8,9 @@ Une seule adresse : `http://ADRESSE-DU-PC:3001`
 - `/` : le site vitrine
 - `/api` : l'API utilisée par l'application
 - `/telechargements/SAMA-XHEL-Sante.apk` : l'application Android
+- `/app/` : l'application de gestion médicale dans le navigateur
+- `/jeu/` : le jeu JÀMMU XEL dans le navigateur (bouton « Jouer maintenant » du site)
+- `/telechargements/JAMMU-XEL.apk` et `/telechargements/JAMMU-XEL-32bits.apk` : le jeu pour Android
 
 ## 1. Une seule fois
 

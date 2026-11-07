@@ -87,6 +87,26 @@ if (fs.existsSync(path.join(APP_WEB, 'index.html'))) {
   }), express.static(APP_WEB, { index: 'index.html', dotfiles: 'ignore', maxAge: 0 }));
 }
 
+// Jeu JÀMMU XEL (troisième application) : version web dans public/jeu.
+// Hors ligne par conception : aucune API, aucune donnée ; seul le lien vers l'annuaire du site sort du jeu.
+const JEU_WEB = path.join(__dirname, '..', 'public', 'jeu');
+if (fs.existsSync(path.join(JEU_WEB, 'index.html'))) {
+  app.use('/jeu', helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'", "'wasm-unsafe-eval'", "'unsafe-inline'"], // moteur de rendu Flutter (WebAssembly)
+      styleSrc: ["'self'", "'unsafe-inline'"],
+      fontSrc: ["'self'", 'data:'],
+      imgSrc: ["'self'", 'data:', 'blob:'],
+      connectSrc: ["'self'"], // aucun service extérieur
+      workerSrc: ["'self'", 'blob:'],
+      mediaSrc: ["'self'", 'blob:', 'data:'], // voix wolof, français, anglais
+      frameAncestors: ["'none'"],
+      upgradeInsecureRequests: null,
+    },
+  }), express.static(JEU_WEB, { index: 'index.html', dotfiles: 'ignore', maxAge: 0 }));
+}
+
 // Site vitrine servi par le même serveur (PC de test, puis serveur en ligne) : une seule adresse à retenir.
 // Politique de sécurité du contenu propre au site : carte OpenFreeMap, polices Google, voix du navigateur.
 const SITE = process.env.SITE_DIR || path.join(__dirname, '..', '..', 'site-vitrine');

@@ -42,6 +42,9 @@
   $('#menu').addEventListener('click', (e) => { if (e.target.tagName === 'A') $('#menu').classList.remove('ouvert'); });
   $('#lien-apk').href = CFG.LIEN_APK;
   $('#lien-apk-ancien').href = CFG.LIEN_APK_ANCIEN;
+  $('#lien-jeu').href = CFG.LIEN_JEU;
+  $('#lien-jeu-apk').href = CFG.LIEN_JEU_APK;
+  $('#lien-jeu-apk-ancien').href = CFG.LIEN_JEU_APK_ANCIEN;
   // QR code : le téléphone télécharge l'APK depuis la même adresse que cette page
   try {
     const qr = qrcode(0, 'M');
@@ -426,6 +429,7 @@
   // iPhone / iPad : le bouton Android ouvre l'information « bientôt disponible »
   if (/iPhone|iPad|iPod/i.test(navigator.userAgent)) {
     $('#lien-apk').addEventListener('click', (e) => { e.preventDefault(); ouvrir('dlg-iphone'); });
+    $('#lien-jeu-apk').hidden = true; // sur iPhone, le jeu se joue dans Safari (« Jouer maintenant »)
   }
 
   // ── Dons : Wave Business ou Orange Money, puis remerciement ──────────

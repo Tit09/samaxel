@@ -192,6 +192,10 @@ p { margin: 0 0 1em; max-width: 68ch; }
 /* Application */
 .appli { display: grid; grid-template-columns: 1.2fr .8fr; gap: 48px; align-items: center; }
 .appli img { border-radius: var(--rayon); aspect-ratio: 4 / 5; object-fit: cover; }
+.jeu { display: grid; grid-template-columns: .9fr 1.1fr; gap: 48px; align-items: center; }
+.jeu__images { display: grid; gap: 14px; }
+.jeu__images img { width: 100%; height: auto; border-radius: var(--rayon); box-shadow: var(--ombre); aspect-ratio: 16 / 9; object-fit: cover; }
+.jeu__liste { padding-left: 1.2em; display: grid; gap: 8px; }
 .appli__boutons { display: flex; flex-wrap: wrap; gap: 12px; margin: 22px 0 14px; }
 
 /* Dons */
@@ -216,7 +220,7 @@ p { margin: 0 0 1em; max-width: 68ch; }
 
 /* Responsive */
 @media (max-width: 900px) {
-  .hero__grille, .sans-lire, .pro, .appli, .pied__grille { grid-template-columns: 1fr; }
+  .hero__grille, .sans-lire, .pro, .appli, .jeu, .pied__grille { grid-template-columns: 1fr; }
   .hero__photo { max-width: 420px; justify-self: center; }
   .parcours { grid-template-columns: 1fr; }
   .trouver { grid-template-columns: 1fr; height: auto; }
