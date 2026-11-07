@@ -95,6 +95,45 @@ jobs:
       - run: flutter analyze
       - run: flutter test
 
+  # Jeu JÀMMU XEL : analyse, tests (textes, voix, IA adaptative, assistant Xel),
+  # puis APK Android et contrôle « aucune permission Internet ».
+  jeu:
+    runs-on: ubuntu-24.04
+    defaults: { run: { working-directory: jeu-jammu-xel } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { flutter-version: '${{ env.FLUTTER_VERSION }}', cache: true }
+      - run: flutter pub get
+      - run: flutter analyze
+      - run: flutter test
+      - uses: actions/setup-java@v4
+        with: { distribution: temurin, java-version: '17' }
+      - run: flutter build apk --release --split-per-abi
+      - name: Aucune permission Internet dans l'APK
+        run: |
+          AAPT=$(ls $ANDROID_HOME/build-tools/*/aapt | tail -1)
+          for f in build/app/outputs/flutter-apk/*-release.apk; do
+            $AAPT dump permissions "$f"
+            if $AAPT dump permissions "$f" | grep -q "android.permission.INTERNET"; then echo "INTERNET trouvée dans $f"; exit 1; fi
+          done
+      - uses: actions/upload-artifact@v4
+        with: { name: jammu-xel-apk, path: 'jeu-jammu-xel/build/app/outputs/flutter-apk/*-release.apk' }
+
+  # Version Windows du jeu (PC des structures, démonstration) : à la demande ou pour une version v*.
+  jeu-windows:
+    needs: jeu
+    if: github.event_name == 'workflow_dispatch' || startsWith(github.ref, 'refs/tags/v')
+    runs-on: windows-latest
+    defaults: { run: { working-directory: jeu-jammu-xel } }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: subosito/flutter-action@v2
+        with: { flutter-version: '${{ env.FLUTTER_VERSION }}', cache: true }
+      - run: flutter build windows --release
+      - uses: actions/upload-artifact@v4
+        with: { name: jammu-xel-windows, path: 'jeu-jammu-xel/build/windows/x64/runner/Release' }
+
   # Constructions lourdes (Windows, macOS, iOS consomment beaucoup de minutes gratuites) :
   # seulement à la demande (Actions → Run workflow) ou pour une version étiquetée v*.
   build:

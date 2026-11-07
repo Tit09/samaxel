@@ -1,0 +1,3 @@
+Andika — Copyright SIL International (https://software.sil.org/andika/).
+Police distribuée sous licence SIL Open Font License 1.1 : https://openfontlicense.org
+Fichiers convertis depuis le paquet npm @fontsource/andika (sous-ensembles latin et latin-ext fusionnés).
