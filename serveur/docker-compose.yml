@@ -60,6 +60,16 @@ services:
       postgres: { condition: service_healthy }
       redis: { condition: service_started }
 
+  # Supervision de la disponibilité (Uptime Kuma) : http://localhost:3002
+  # Vérifie toutes les 60 s que le site, l'API, la base et Redis répondent (http://api:3001/health/complet)
+  # et prévient sur Telegram en cas de panne. Premier lancement : créer le compte administrateur.
+  uptime-kuma:
+    image: louislam/uptime-kuma:1.23.16
+    restart: unless-stopped
+    volumes: [kuma:/app/data]
+    ports: ["3002:3001"]
+    depends_on: [api]
+
   # Adresse publique HTTPS GRATUITE (Cloudflare Tunnel, sans compte ni nom de domaine) :
   #   docker compose --profile public up -d
   #   docker compose logs tunnel | findstr trycloudflare      → https://xxxx.trycloudflare.com
@@ -85,6 +95,7 @@ services:
       --denied-peer-ip=10.0.0.0-10.255.255.255 --denied-peer-ip=172.16.0.0-172.31.255.255 --denied-peer-ip=192.168.0.0-192.168.255.255
 
 volumes:
+  kuma:
   pgdata:
   redisdata:
   donnees:

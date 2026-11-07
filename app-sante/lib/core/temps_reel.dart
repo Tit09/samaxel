@@ -31,7 +31,7 @@ class TempsReel {
         .setAuth({'token': jeton})
         .enableReconnection()
         .build());
-    for (final ev in ['message:nouveau', 'caisse:maj', 'ticket:maj', 'appel:entrant', 'appel:accepte', 'appel:fin']) {
+    for (final ev in ['message:nouveau', 'caisse:maj', 'ticket:maj', 'appel:entrant', 'appel:accepte', 'appel:fin', 'alerte:nouvelle']) {
       s.on(ev, (d) => _evenements.add((type: ev, donnees: d is Map ? Map<String, dynamic>.from(d) : <String, dynamic>{})));
     }
     // Le jeton d'accès dure 15 min : à la reconnexion, on reprend le jeton renouvelé

@@ -141,6 +141,8 @@ const env = {
     // webhook : Telegram appelle /api/telegram/webhook (serveur en ligne avec HTTPS)
     mode: process.env.TELEGRAM_MODE || 'polling',
     secretWebhook: process.env.TELEGRAM_WEBHOOK_SECRET || '',
+    // Groupe d'astreinte qui reçoit les alertes de sécurité en temps réel (identifiant numérique du groupe)
+    alertesChatId: process.env.TELEGRAM_ALERTES_CHAT_ID || '',
   },
   whatsapp: {
     token: process.env.WHATSAPP_TOKEN,

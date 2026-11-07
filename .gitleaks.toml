@@ -1,0 +1,8 @@
+# Configuration gitleaks : règles par défaut + faux positifs documentés.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Adresses internes Docker (nom du service « api » et son port), pas des secrets"
+regexTarget = "line"
+regexes = ['''http://api:3001/''']

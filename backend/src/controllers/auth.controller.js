@@ -4,6 +4,7 @@ const env = require('../config/env');
 const { pool, withContext } = require('../config/database');
 const tokens = require('../services/token.service');
 const otp = require('../services/otp.service');
+const alertes = require('../services/alertes.service');
 const { userPublic } = require('../utils/format');
 const { chiffrerJson } = require('../utils/crypto');
 const { badRequest, unauthorized, forbidden, conflict, notFound, HttpError } = require('../utils/errors');
@@ -268,6 +269,14 @@ async function login(req, res) {
       'UPDATE users SET login_attempts = $1, locked_until = $2 WHERE id = $3',
       [n >= MAX_ECHECS ? 0 : n, n >= MAX_ECHECS ? new Date(Date.now() + VERROU_MIN * 60000) : null, user.id],
     );
+    // Force brute probable : la supervision est prévenue tout de suite (WebSocket + Telegram d'astreinte)
+    if (n >= MAX_ECHECS) {
+      const { rows: [m] } = await pool.query(
+        "SELECT structure_id FROM membres_structure WHERE user_id = $1 AND statut = 'ACTIF' ORDER BY ($2::uuid IS NOT NULL AND structure_id = $2) DESC LIMIT 1",
+        [user.id, structure_id || null]);
+      alertes.lever({ type: 'COMPTE_VERROUILLE', userId: user.id, structureId: m?.structure_id || null, score: MAX_ECHECS,
+        details: { essais: MAX_ECHECS, verrou_minutes: VERROU_MIN, ip: req.ip } }).catch((e) => console.error('[Alertes]', e.message));
+    }
     throw erreur;
   }
   await pool.query('UPDATE users SET login_attempts = 0, locked_until = NULL WHERE id = $1', [user.id]);
